@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen">
@@ -14,9 +16,9 @@ export default function Home() {
           <a href="#how" className="text-sm text-gray-600 hover:text-gray-900">
             How it works
           </a>
-          <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition">
+          <Link href="/login" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition">
             Get Started
-          </button>
+          </Link>
         </div>
       </nav>
 
@@ -36,12 +38,12 @@ export default function Home() {
           every moment.
         </p>
         <div className="mt-10 flex gap-4">
-          <button className="rounded-lg bg-blue-600 px-6 py-3 text-base font-medium text-white hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+          <Link href="/register" className="rounded-lg bg-blue-600 px-6 py-3 text-base font-medium text-white hover:bg-blue-700 transition shadow-lg shadow-blue-200">
             Start Planning — It&apos;s Free
-          </button>
-          <button className="rounded-lg border border-gray-300 px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition">
+          </Link>
+          <Link href="/trips" className="rounded-lg border border-gray-300 px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 transition">
             See Demo
-          </button>
+          </Link>
         </div>
 
         {/* AI Chat Preview */}
@@ -178,9 +180,9 @@ export default function Home() {
         <p className="text-blue-100 mb-8 max-w-md mx-auto">
           Join Tripgenie and let AI handle the planning while you focus on the experience.
         </p>
-        <button className="rounded-lg bg-white text-blue-600 px-8 py-3 text-base font-semibold hover:bg-blue-50 transition">
+        <Link href="/register" className="rounded-lg bg-white text-blue-600 px-8 py-3 text-base font-semibold hover:bg-blue-50 transition">
           Get Started for Free
-        </button>
+        </Link>
       </section>
 
       {/* Footer */}
