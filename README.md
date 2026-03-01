@@ -1,67 +1,73 @@
-# Tripgenie
+# Welcome to your Lovable project
 
-An all-in-one AI-powered travel platform — plan trips, book flights and hotels, and document your journeys.
+## Project info
 
-## Features
+**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
-- **AI Travel Assistant** — Chat-based trip planning with personalized recommendations and itinerary generation
-- **Trip Planning** — Interactive itinerary builder with budget tracking, maps, and collaborative editing
-- **Booking Engine** — Search and book flights, hotels, activities, and car rentals with price comparison
-- **Travel Journal** — Document trips with photos, share stories, and track travel stats
+## How can I edit this code?
 
-## Tech Stack
+There are several ways of editing your application.
 
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
-- **Backend**: tRPC, Prisma, PostgreSQL (Supabase)
-- **AI**: OpenAI GPT-4
-- **Auth**: NextAuth.js
-- **Maps**: Mapbox GL JS
-- **Booking APIs**: Amadeus (flights), Booking.com (hotels), Viator (activities)
+**Use Lovable**
 
-## Getting Started
+Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
 
-### Prerequisites
+Changes made via Lovable will be committed automatically to this repo.
 
-- Node.js 18+
-- npm or yarn
-- PostgreSQL database (or Supabase account)
+**Use your preferred IDE**
 
-### Setup
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-```bash
-# Clone the repository
-git clone https://github.com/Bksingh9/Tripgenie.git
-cd Tripgenie
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-# Install dependencies
-npm install
+Follow these steps:
 
-# Copy environment variables
-cp .env.example .env.local
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-# Set up the database
-npx prisma db push
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-# Run the development server
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+**Edit a file directly in GitHub**
 
-## Project Structure
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-```
-src/
-├── app/          # Next.js pages and API routes
-├── components/   # React components
-├── lib/          # Utilities, API clients, AI integration
-├── server/       # tRPC routers and business logic
-├── stores/       # Zustand state management
-└── types/        # TypeScript types
-```
+**Use GitHub Codespaces**
 
-See [PROJECT_SCOPE.md](./PROJECT_SCOPE.md) for the full project scope, roadmap, and architecture details.
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## License
+## What technologies are used for this project?
 
-MIT
+This project is built with:
+
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
+
+## How can I deploy this project?
+
+Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+
+## Can I connect a custom domain to my Lovable project?
+
+Yes, you can!
+
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
