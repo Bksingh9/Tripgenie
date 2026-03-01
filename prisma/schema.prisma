@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  trips         Trip[]
+  journalEntries JournalEntry[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Trip {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  destination String
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float?
+  currency    String   @default("USD")
+  status      String   @default("planning") // planning, booked, in-progress, completed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  itineraryDays ItineraryDay[]
+  bookings      Booking[]
+  journalEntries JournalEntry[]
+}
+
+model ItineraryDay {
+  id      String @id @default(cuid())
+  dayNumber Int
+  date    DateTime?
+  notes   String?
+
+  tripId  String
+  trip    Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  activities Activity[]
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  location    String?
+  latitude    Float?
+  longitude   Float?
+  startTime   String?
+  endTime     String?
+  category    String?  // sightseeing, food, transport, accommodation, activity
+  cost        Float?
+  currency    String   @default("USD")
+  sortOrder   Int      @default(0)
+
+  itineraryDayId String
+  itineraryDay   ItineraryDay @relation(fields: [itineraryDayId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id             String   @id @default(cuid())
+  type           String   // flight, hotel, activity, car
+  provider       String?
+  confirmationId String?
+  status         String   @default("confirmed") // pending, confirmed, cancelled
+  price          Float?
+  currency       String   @default("USD")
+  details        Json?
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model JournalEntry {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  location   String?
+  latitude   Float?
+  longitude  Float?
+  photos     String[] // array of photo URLs
+  visibility String   @default("private") // private, public
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tripId String?
+  trip   Trip?  @relation(fields: [tripId], references: [id], onDelete: SetNull)
+}
