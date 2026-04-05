@@ -4,18 +4,22 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Bookmark, 
-  Bell, 
-  Trash2, 
-  TrendingDown, 
+import {
+  Bookmark,
+  Bell,
+  Trash2,
+  TrendingDown,
   TrendingUp,
   MapPin,
   Calendar,
   IndianRupee,
-  ArrowRight
+  ExternalLink
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { UpgradePrompt } from "@/components/monetization/UpgradePrompt";
+import { AdBanner } from "@/components/monetization/AdBanner";
+import { getAffiliateLink } from "@/components/monetization/AffiliateBooking";
 
 const savedTrips = [
   {
@@ -55,6 +59,8 @@ const savedTrips = [
 
 const SavedTrips = () => {
   const [trips, setTrips] = useState(savedTrips);
+  const { savedTripsLimit, isPro } = useSubscription();
+  const isAtLimit = trips.length >= savedTripsLimit;
 
   const removeTrip = (id: string) => {
     setTrips(trips.filter(trip => trip.id !== id));
@@ -90,8 +96,19 @@ const SavedTrips = () => {
             </div>
           </div>
 
+          {/* Upgrade Prompt */}
+          {isAtLimit && !isPro && (
+            <div className="mb-6">
+              <UpgradePrompt
+                feature="unlimited saved trips"
+                description="Free plan allows up to 3 saved trips. Upgrade to Pro for unlimited trip saving and price alerts."
+              />
+            </div>
+          )}
+
           {/* Trips List */}
           {trips.length > 0 ? (
+            <>
             <div className="space-y-4">
               {trips.map((trip, index) => (
                 <motion.div
@@ -178,10 +195,16 @@ const SavedTrips = () => {
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
-                              <Button variant="default" size="sm" className="gap-1">
-                                Book Now
-                                <ArrowRight className="h-4 w-4" />
-                              </Button>
+                              <a
+                                href={getAffiliateLink("hotel", trip.destination).url}
+                                target="_blank"
+                                rel="noopener sponsored"
+                              >
+                                <Button variant="default" size="sm" className="gap-1">
+                                  Book Now
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                              </a>
                             </div>
                           </div>
                         </div>
@@ -191,6 +214,12 @@ const SavedTrips = () => {
                 </motion.div>
               ))}
             </div>
+
+            {/* Ad Banner */}
+            <div className="mt-6">
+              <AdBanner format="horizontal" />
+            </div>
+            </>
           ) : (
             <Card className="text-center py-16">
               <CardContent>

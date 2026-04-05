@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
-import { MapPin, ArrowRight } from "lucide-react";
+import { MapPin, ArrowRight, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { getAffiliateLink } from "@/components/monetization/AffiliateBooking";
+import { getAffiliateLink } from "@/components/monetization/AffiliateBooking";
 
 const destinations = [
   {
@@ -58,32 +60,39 @@ export function PopularDestinations() {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="group overflow-hidden cursor-pointer border-0 bg-transparent hover:shadow-elevated">
-                <CardContent className="p-0">
-                  <div className="relative overflow-hidden rounded-2xl">
-                    <img
-                      src={destination.image}
-                      alt={destination.city}
-                      className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
-                    <div className="absolute top-3 right-3">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary/90 text-primary-foreground">
-                        {destination.tag}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="flex items-center gap-1 text-foreground mb-1">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        <h3 className="font-bold text-lg">{destination.city}</h3>
+              <a
+                href={getAffiliateLink("hotel", destination.city).url}
+                target="_blank"
+                rel="noopener sponsored"
+              >
+                <Card className="group overflow-hidden cursor-pointer border-0 bg-transparent hover:shadow-elevated">
+                  <CardContent className="p-0">
+                    <div className="relative overflow-hidden rounded-2xl">
+                      <img
+                        src={destination.image}
+                        alt={destination.city}
+                        className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
+                      <div className="absolute top-3 right-3">
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary/90 text-primary-foreground">
+                          {destination.tag}
+                        </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        From <span className="text-primary font-semibold">₹{destination.priceFrom.toLocaleString("en-IN")}</span>
-                      </p>
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <div className="flex items-center gap-1 text-foreground mb-1">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          <h3 className="font-bold text-lg">{destination.city}</h3>
+                          <ExternalLink className="h-3 w-3 text-primary ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          From <span className="text-primary font-semibold">₹{destination.priceFrom.toLocaleString("en-IN")}</span>
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </a>
             </motion.div>
           ))}
         </div>

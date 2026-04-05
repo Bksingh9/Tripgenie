@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Plane, Twitter, Instagram, Linkedin, Github } from "lucide-react";
+import { Plane, Twitter, Instagram, Linkedin, Github, Heart } from "lucide-react";
 
 export function Footer() {
   return (
@@ -39,8 +39,8 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link to="/trip-planner" className="hover:text-foreground transition-colors">Trip Planner</Link></li>
               <li><Link to="/saved-trips" className="hover:text-foreground transition-colors">Saved Trips</Link></li>
+              <li><Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
               <li><Link to="#" className="hover:text-foreground transition-colors">Price Alerts</Link></li>
-              <li><Link to="#" className="hover:text-foreground transition-colors">Mobile App</Link></li>
             </ul>
           </div>
 
@@ -65,8 +65,28 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>© 2024 TripGenie. All rights reserved. Made with ❤️ for travelers.</p>
+        {/* Partners */}
+        <div className="border-t border-border mt-8 pt-8">
+          <div className="flex flex-wrap items-center justify-center gap-6 mb-6">
+            <span className="text-xs text-muted-foreground/50 uppercase tracking-wider">Our Partners</span>
+            {["Booking.com", "Skyscanner", "MakeMyTrip", "Agoda", "Cleartrip"].map((partner) => (
+              <span key={partner} className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                {partner}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <p>© 2026 TripGenie. All rights reserved. Made with ❤️ for travelers.</p>
+            <a
+              href={import.meta.env.VITE_BMC_URL || "https://www.buymeacoffee.com/tripgenie"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors"
+            >
+              <Heart className="h-3 w-3" />
+              Support TripGenie
+            </a>
+          </div>
         </div>
       </div>
     </footer>

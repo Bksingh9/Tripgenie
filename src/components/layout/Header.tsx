@@ -1,19 +1,22 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plane, Menu, X, User, Bell, Bookmark } from "lucide-react";
+import { Plane, Menu, X, User, Bell, Bookmark, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/trip-planner", label: "Plan Trip" },
   { href: "/saved-trips", label: "Saved" },
   { href: "/my-bookings", label: "Bookings" },
+  { href: "/pricing", label: "Pricing" },
 ];
 
 export function Header() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { tier } = useSubscription();
 
   return (
     <motion.header
@@ -63,6 +66,14 @@ export function Header() {
           <Button variant="ghost" size="icon" className="hidden md:flex">
             <Bookmark className="h-5 w-5" />
           </Button>
+          {tier === "free" && (
+            <Link to="/pricing">
+              <Button variant="default" size="sm" className="hidden sm:flex gap-2 bg-primary/90 hover:bg-primary">
+                <Zap className="h-4 w-4" />
+                Upgrade
+              </Button>
+            </Link>
+          )}
           <Link to="/auth">
             <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
               <User className="h-4 w-4" />

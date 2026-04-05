@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { TripComparisonCard, demoTripOptions } from "@/components/trips/TripComparisonCard";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { PopularDestinations } from "@/components/home/PopularDestinations";
+import { AffiliateBooking } from "@/components/monetization/AffiliateBooking";
+import { AdBanner } from "@/components/monetization/AdBanner";
 import { Plane, Sparkles } from "lucide-react";
 import heroImage from "@/assets/hero-travel.jpg";
 
@@ -124,8 +127,16 @@ const Index = () => {
         </motion.section>
       )}
 
+      {/* Affiliate Booking Partners */}
+      {showResults && <AffiliateBooking destination="Goa" />}
+
       {/* Features Section */}
       <FeaturesSection />
+
+      {/* Ad Banner */}
+      <div className="container py-4">
+        <AdBanner format="horizontal" />
+      </div>
 
       {/* Popular Destinations */}
       <PopularDestinations />
@@ -148,12 +159,12 @@ const Index = () => {
                 Join thousands of travelers who save time and money with TripGenie's AI-powered planning.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="px-8 py-3 rounded-xl bg-primary-foreground text-primary font-semibold hover:bg-primary-foreground/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                <Link to="/pricing" className="px-8 py-3 rounded-xl bg-primary-foreground text-primary font-semibold hover:bg-primary-foreground/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-center">
                   Get Started Free
-                </button>
-                <button className="px-8 py-3 rounded-xl bg-transparent border-2 border-primary-foreground/30 text-primary-foreground font-semibold hover:bg-primary-foreground/10 transition-all duration-300">
-                  Watch Demo
-                </button>
+                </Link>
+                <Link to="/pricing" className="px-8 py-3 rounded-xl bg-transparent border-2 border-primary-foreground/30 text-primary-foreground font-semibold hover:bg-primary-foreground/10 transition-all duration-300 text-center">
+                  View Plans
+                </Link>
               </div>
             </div>
           </motion.div>

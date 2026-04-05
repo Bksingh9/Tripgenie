@@ -1,27 +1,42 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  CreditCard, 
-  Bell, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  CreditCard,
+  Bell,
   Shield,
   Settings,
   Plane,
   Train,
   Bus,
   Leaf,
-  Moon
+  Moon,
+  Crown,
+  Zap,
+  ArrowRight
 } from "lucide-react";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+
+const tierConfig = {
+  free: { label: "Free Plan", icon: User, color: "text-muted-foreground" },
+  pro: { label: "Pro Traveler", icon: Zap, color: "text-primary" },
+  premium: { label: "Premium Member", icon: Crown, color: "text-yellow-500" },
+};
 
 const Profile = () => {
+  const { tier, isPro } = useSubscription();
+  const currentTier = tierConfig[tier];
+  const TierIcon = currentTier.icon;
+
   return (
     <Layout>
       <div className="container py-12">
@@ -38,9 +53,20 @@ const Profile = () => {
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">John Doe</h1>
               <p className="text-muted-foreground">john.doe@email.com</p>
-              <Badge variant="outline" className="mt-2">
-                Pro Traveler
-              </Badge>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge variant="outline" className={`gap-1 ${currentTier.color}`}>
+                  <TierIcon className="h-3 w-3" />
+                  {currentTier.label}
+                </Badge>
+                {!isPro && (
+                  <Link to="/pricing">
+                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer gap-1">
+                      Upgrade
+                      <ArrowRight className="h-3 w-3" />
+                    </Badge>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 

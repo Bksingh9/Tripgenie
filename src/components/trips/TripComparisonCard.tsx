@@ -1,21 +1,23 @@
 import { motion } from "framer-motion";
-import { 
-  Clock, 
-  IndianRupee, 
-  Leaf, 
-  Plane, 
-  Building2, 
-  Train, 
-  Bus, 
+import {
+  Clock,
+  IndianRupee,
+  Leaf,
+  Plane,
+  Building2,
+  Train,
+  Bus,
   Car,
   Star,
   TrendingDown,
   Zap,
-  Crown
+  Crown,
+  ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getAffiliateLink } from "@/components/monetization/AffiliateBooking";
 
 interface TripSegment {
   type: "flight" | "hotel" | "train" | "bus" | "cab";
@@ -136,9 +138,22 @@ export function TripComparisonCard({ option, index, isSelected, onSelect }: Trip
             })}
           </div>
 
-          <Button variant={isSelected ? "hero" : "outline"} className="w-full mt-4">
-            {isSelected ? "Selected" : "Select This Trip"}
-          </Button>
+          {isSelected ? (
+            <a
+              href={getAffiliateLink(option.segments[0]?.type || "hotel").url}
+              target="_blank"
+              rel="noopener sponsored"
+            >
+              <Button variant="hero" className="w-full mt-4 gap-2">
+                Book Now
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </a>
+          ) : (
+            <Button variant="outline" className="w-full mt-4" onClick={onSelect}>
+              Select This Trip
+            </Button>
+          )}
         </CardContent>
       </Card>
     </motion.div>
