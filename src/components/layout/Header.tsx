@@ -1,8 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plane, Menu, X, User, Bell, Bookmark } from "lucide-react";
+import { Plane, Menu, X, User, Bell, Bookmark, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -13,7 +15,24 @@ const navLinks = [
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = () => {
+    signOut();
+    toast.success("Signed out");
+    navigate("/");
+  };
+
+  const initials = user
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "";
 
   return (
     <motion.header
@@ -63,12 +82,33 @@ export function Header() {
           <Button variant="ghost" size="icon" className="hidden md:flex">
             <Bookmark className="h-5 w-5" />
           </Button>
-          <Link to="/auth">
-            <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
-              <User className="h-4 w-4" />
-              Sign In
-            </Button>
-          </Link>
+          {user ? (
+            <div className="hidden sm:flex items-center gap-2">
+              <Link to="/profile">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-primary text-[10px] font-bold text-primary-foreground">
+                    {initials}
+                  </span>
+                  {user.name.split(" ")[0]}
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSignOut}
+                aria-label="Sign out"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth">
+              <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
+                <User className="h-4 w-4" />
+                Sign In
+              </Button>
+            </Link>
+          )}
 
           {/* Mobile Menu Button */}
           <Button
@@ -105,12 +145,34 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" className="w-full mt-2 gap-2">
-                <User className="h-4 w-4" />
-                Sign In
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full mt-2 gap-2">
+                    <User className="h-4 w-4" />
+                    {user.name.split(" ")[0]}
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="w-full gap-2"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" className="w-full mt-2 gap-2">
+                  <User className="h-4 w-4" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </nav>
         </motion.div>
       )}

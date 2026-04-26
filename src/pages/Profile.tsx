@@ -5,23 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  CreditCard, 
-  Bell, 
+import { useAuth } from "@/lib/auth";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  CreditCard,
+  Bell,
   Shield,
   Settings,
   Plane,
   Train,
   Bus,
   Leaf,
-  Moon
+  Moon,
 } from "lucide-react";
 
 const Profile = () => {
+  const { user } = useAuth();
+  const displayName = user?.name ?? "Traveler";
+  const displayEmail = user?.email ?? "";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <Layout>
       <div className="container py-12">
@@ -33,11 +44,11 @@ const Profile = () => {
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-primary text-primary-foreground text-3xl font-bold shadow-lg shadow-primary/30">
-              JD
+              {initials}
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">John Doe</h1>
-              <p className="text-muted-foreground">john.doe@email.com</p>
+              <h1 className="text-2xl md:text-3xl font-bold">{displayName}</h1>
+              <p className="text-muted-foreground">{displayEmail}</p>
               <Badge variant="outline" className="mt-2">
                 Pro Traveler
               </Badge>
@@ -56,13 +67,13 @@ const Profile = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Full Name</label>
-                  <Input defaultValue="John Doe" />
+                  <Input defaultValue={displayName} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Mail className="h-4 w-4" /> Email
                   </label>
-                  <Input defaultValue="john.doe@email.com" />
+                  <Input defaultValue={displayEmail} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-2">

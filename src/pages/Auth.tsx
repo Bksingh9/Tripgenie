@@ -1,22 +1,52 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plane, Mail, Lock, User, ArrowRight, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plane, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
+
+interface LocationState {
+  from?: string;
+}
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { user, signIn, signUp } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as LocationState | null)?.from ?? "/trip-planner";
+
+  useEffect(() => {
+    if (user) navigate(redirectTo, { replace: true });
+  }, [user, navigate, redirectTo]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement auth
-    console.log("Auth submitted");
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      if (isLogin) {
+        await signIn(email, password);
+        toast.success("Welcome back!");
+      } else {
+        await signUp(name, email, password);
+        toast.success("Account created — happy travels!");
+      }
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -58,6 +88,8 @@ const Auth = () => {
                       placeholder="John Doe"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
+                      autoComplete="name"
+                      required
                     />
                   </div>
                 )}
@@ -72,6 +104,8 @@ const Auth = () => {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
                   />
                 </div>
 
@@ -85,6 +119,9 @@ const Auth = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
+                    minLength={6}
+                    required
                   />
                 </div>
 
@@ -92,6 +129,7 @@ const Auth = () => {
                   <div className="text-right">
                     <button
                       type="button"
+                      onClick={() => toast.info("Password recovery is coming soon")}
                       className="text-sm text-primary hover:underline"
                     >
                       Forgot password?
@@ -99,9 +137,24 @@ const Auth = () => {
                   </div>
                 )}
 
-                <Button variant="hero" size="lg" className="w-full gap-2">
-                  {isLogin ? "Sign In" : "Create Account"}
-                  <ArrowRight className="h-4 w-4" />
+                <Button
+                  type="submit"
+                  variant="hero"
+                  size="lg"
+                  className="w-full gap-2"
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {isLogin ? "Signing in..." : "Creating account..."}
+                    </>
+                  ) : (
+                    <>
+                      {isLogin ? "Sign In" : "Create Account"}
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </form>
 
@@ -116,7 +169,12 @@ const Auth = () => {
               </div>
 
               {/* Social Login */}
-              <Button variant="outline" className="w-full gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => toast.info("Google sign-in is coming soon")}
+              >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"

@@ -1,73 +1,59 @@
-# Welcome to your Lovable project
+# Tripgenie
 
-## Project info
+An AI-powered travel platform for discovering destinations, planning trips, booking travel services, and documenting journeys.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+See [`PROJECT_SCOPE.md`](./PROJECT_SCOPE.md) for the full product vision, feature list, and roadmap.
 
-## How can I edit this code?
+## Tech Stack
 
-There are several ways of editing your application.
+- **Vite** + **React 18** + **TypeScript**
+- **Tailwind CSS** with shadcn/ui components (Radix UI primitives)
+- **React Router** for client-side routing
+- **TanStack Query** for server state
+- **Framer Motion** for animations
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Requires Node.js 18+ and npm.
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Install dependencies
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the dev server (http://localhost:5173)
 npm run dev
+
+# Type-check and build for production
+npm run build
+
+# Preview the production build locally
+npm run preview
+
+# Lint
+npm run lint
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── components/      # UI components (layout, ui, chat, trips, home, auth)
+├── hooks/           # Custom React hooks
+├── lib/             # Shared utilities and the auth context
+├── pages/           # Route components (Index, TripPlanner, SavedTrips, ...)
+├── App.tsx          # Router and providers
+└── main.tsx         # App entry
+```
 
-**Use GitHub Codespaces**
+## Authentication
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The current build ships with a client-side auth stub backed by `localStorage`
+so the protected routes (`/saved-trips`, `/my-bookings`, `/profile`) are usable
+in the demo. It is intentionally not a substitute for a real backend; replace
+`src/lib/auth.tsx` with a server-backed implementation (e.g. NextAuth or
+Supabase Auth) before shipping to production.
 
-## What technologies are used for this project?
+## Deployment
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The repo includes a `vercel.json` for deployment to Vercel. Pushing to the
+default branch will trigger a deploy if the project is linked to Vercel.
