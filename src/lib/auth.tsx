@@ -4,9 +4,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { isSupabaseEnabled, supabase } from "@/lib/supabase";
 
 const STORAGE_KEY = "tripgenie.auth";
 
@@ -25,24 +27,24 @@ interface AuthContextValue {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<AuthUser>;
   signUp: (name: string, email: string, password: string) => Promise<AuthUser>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-interface AuthState {
+interface LocalState {
   currentUserId: string | null;
   accounts: StoredAccount[];
 }
 
-const emptyState: AuthState = { currentUserId: null, accounts: [] };
+const emptyState: LocalState = { currentUserId: null, accounts: [] };
 
-function readState(): AuthState {
+function readLocal(): LocalState {
   if (typeof window === "undefined") return emptyState;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return emptyState;
-    const parsed = JSON.parse(raw) as Partial<AuthState>;
+    const parsed = JSON.parse(raw) as Partial<LocalState>;
     return {
       currentUserId: parsed.currentUserId ?? null,
       accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
@@ -52,13 +54,11 @@ function readState(): AuthState {
   }
 }
 
-function writeState(state: AuthState) {
+function writeLocal(state: LocalState) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-// Lightweight obfuscation only — this app has no real backend. Do not treat as
-// secure password storage.
 async function hashPassword(password: string): Promise<string> {
   if (typeof crypto !== "undefined" && crypto.subtle) {
     const data = new TextEncoder().encode(password);
@@ -70,83 +70,158 @@ async function hashPassword(password: string): Promise<string> {
   return btoa(unescape(encodeURIComponent(password)));
 }
 
-function toUser({ id, name, email }: StoredAccount): AuthUser {
-  return { id, name, email };
+function validate(email: string, password: string, name?: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (name !== undefined && !name.trim()) throw new Error("Please enter your name");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    throw new Error("Please enter a valid email address");
+  }
+  if (password.length < 6) {
+    throw new Error("Password must be at least 6 characters");
+  }
+  return normalizedEmail;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>(emptyState);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const localStateRef = useRef<LocalState>(emptyState);
 
   useEffect(() => {
-    setState(readState());
+    let cancelled = false;
+    if (isSupabaseEnabled && supabase) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (cancelled) return;
+        const session = data.session;
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? "",
+            name:
+              (session.user.user_metadata?.name as string | undefined) ??
+              session.user.email ??
+              "Traveler",
+          });
+        }
+        setLoading(false);
+      });
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? "",
+            name:
+              (session.user.user_metadata?.name as string | undefined) ??
+              session.user.email ??
+              "Traveler",
+          });
+        } else {
+          setUser(null);
+        }
+      });
+      return () => {
+        cancelled = true;
+        sub.subscription.unsubscribe();
+      };
+    }
+
+    const state = readLocal();
+    localStateRef.current = state;
+    if (state.currentUserId) {
+      const account = state.accounts.find((a) => a.id === state.currentUserId);
+      if (account) setUser({ id: account.id, name: account.name, email: account.email });
+    }
     setLoading(false);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const persist = useCallback((next: AuthState) => {
-    setState(next);
-    writeState(next);
-  }, []);
-
-  const signUp = useCallback(
-    async (name: string, email: string, password: string) => {
-      const trimmedName = name.trim();
-      const normalizedEmail = email.trim().toLowerCase();
-      if (!trimmedName) throw new Error("Please enter your name");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-        throw new Error("Please enter a valid email address");
-      }
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters");
-      }
-      const current = readState();
-      if (current.accounts.some((a) => a.email === normalizedEmail)) {
-        throw new Error("An account with this email already exists");
-      }
-      const account: StoredAccount = {
-        id: crypto.randomUUID(),
-        name: trimmedName,
+  const signUp = useCallback(async (name: string, email: string, password: string) => {
+    const normalizedEmail = validate(email, password, name);
+    if (isSupabaseEnabled && supabase) {
+      const { data, error } = await supabase.auth.signUp({
         email: normalizedEmail,
-        passwordHash: await hashPassword(password),
+        password,
+        options: { data: { name: name.trim() } },
+      });
+      if (error) throw new Error(error.message);
+      const u = data.user;
+      if (!u) throw new Error("Account created — check your email to confirm");
+      const next: AuthUser = {
+        id: u.id,
+        email: u.email ?? normalizedEmail,
+        name: name.trim(),
       };
-      const next: AuthState = {
-        currentUserId: account.id,
-        accounts: [...current.accounts, account],
+      setUser(next);
+      return next;
+    }
+    const state = readLocal();
+    if (state.accounts.some((a) => a.email === normalizedEmail)) {
+      throw new Error("An account with this email already exists");
+    }
+    const account: StoredAccount = {
+      id: crypto.randomUUID(),
+      name: name.trim(),
+      email: normalizedEmail,
+      passwordHash: await hashPassword(password),
+    };
+    const nextState: LocalState = {
+      currentUserId: account.id,
+      accounts: [...state.accounts, account],
+    };
+    writeLocal(nextState);
+    localStateRef.current = nextState;
+    const next: AuthUser = { id: account.id, name: account.name, email: account.email };
+    setUser(next);
+    return next;
+  }, []);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    const normalizedEmail = validate(email, password);
+    if (isSupabaseEnabled && supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+      if (error) throw new Error(error.message);
+      const u = data.user;
+      if (!u) throw new Error("Sign-in failed");
+      const next: AuthUser = {
+        id: u.id,
+        email: u.email ?? normalizedEmail,
+        name:
+          (u.user_metadata?.name as string | undefined) ?? u.email ?? "Traveler",
       };
-      persist(next);
-      return toUser(account);
-    },
-    [persist],
-  );
+      setUser(next);
+      return next;
+    }
+    const state = readLocal();
+    const account = state.accounts.find((a) => a.email === normalizedEmail);
+    const passwordHash = await hashPassword(password);
+    if (!account || account.passwordHash !== passwordHash) {
+      throw new Error("Invalid email or password");
+    }
+    const nextState: LocalState = { ...state, currentUserId: account.id };
+    writeLocal(nextState);
+    localStateRef.current = nextState;
+    const next: AuthUser = { id: account.id, name: account.name, email: account.email };
+    setUser(next);
+    return next;
+  }, []);
 
-  const signIn = useCallback(
-    async (email: string, password: string) => {
-      const normalizedEmail = email.trim().toLowerCase();
-      if (!normalizedEmail || !password) {
-        throw new Error("Email and password are required");
-      }
-      const current = readState();
-      const account = current.accounts.find((a) => a.email === normalizedEmail);
-      const passwordHash = await hashPassword(password);
-      if (!account || account.passwordHash !== passwordHash) {
-        throw new Error("Invalid email or password");
-      }
-      persist({ ...current, currentUserId: account.id });
-      return toUser(account);
-    },
-    [persist],
-  );
-
-  const signOut = useCallback(() => {
-    const current = readState();
-    persist({ ...current, currentUserId: null });
-  }, [persist]);
-
-  const user = useMemo<AuthUser | null>(() => {
-    if (!state.currentUserId) return null;
-    const account = state.accounts.find((a) => a.id === state.currentUserId);
-    return account ? toUser(account) : null;
-  }, [state]);
+  const signOut = useCallback(async () => {
+    if (isSupabaseEnabled && supabase) {
+      await supabase.auth.signOut();
+      setUser(null);
+      return;
+    }
+    const state = readLocal();
+    const nextState: LocalState = { ...state, currentUserId: null };
+    writeLocal(nextState);
+    localStateRef.current = nextState;
+    setUser(null);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, loading, signIn, signUp, signOut }),

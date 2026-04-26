@@ -181,8 +181,8 @@ const MyBookings = () => {
                                 variant="ghost"
                                 size="sm"
                                 className="text-destructive hover:text-destructive"
-                                onClick={() => {
-                                  cancelBooking(booking.id);
+                                onClick={async () => {
+                                  await cancelBooking(booking.id);
                                   toast.success("Booking cancelled");
                                 }}
                               >

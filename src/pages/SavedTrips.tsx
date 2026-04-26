@@ -24,14 +24,16 @@ const SavedTrips = () => {
   const { createBooking } = useBookings();
   const navigate = useNavigate();
 
-  const handleBook = (id: string) => {
+  const handleBook = async (id: string) => {
     const trip = savedTrips.find((t) => t.id === id);
     if (!trip) return;
-    const booking = createBooking(trip.search, trip.option);
+    const booking = await createBooking(trip.search, trip.option);
     if (booking) {
-      removeSavedTrip(id);
+      await removeSavedTrip(id);
       toast.success(`Booking confirmed (${booking.id})`);
       navigate("/my-bookings");
+    } else {
+      toast.error("Could not create booking");
     }
   };
 
@@ -137,8 +139,8 @@ const SavedTrips = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                removeSavedTrip(trip.id);
+                              onClick={async () => {
+                                await removeSavedTrip(trip.id);
                                 toast.success("Removed from saved trips");
                               }}
                               className="text-muted-foreground hover:text-destructive"

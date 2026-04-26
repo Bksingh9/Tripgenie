@@ -25,6 +25,27 @@ import { describeSearch, generateOptions, type SearchInput, type TripOption } fr
 
 interface SearchState extends SearchInput {
   options: TripOption[];
+  source: "amadeus" | "mock";
+}
+
+async function searchTrip(input: SearchInput): Promise<{
+  options: TripOption[];
+  source: "amadeus" | "mock";
+}> {
+  try {
+    const res = await fetch("/api/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    if (res.ok) {
+      const json = (await res.json()) as { options: TripOption[]; source: "amadeus" | "mock" };
+      if (Array.isArray(json.options) && json.options.length > 0) return json;
+    }
+  } catch {
+    // fall through to local mock
+  }
+  return { options: generateOptions(input), source: "mock" };
 }
 
 const TripPlanner = () => {
@@ -44,7 +65,7 @@ const TripPlanner = () => {
 
   const canSubmit = from.trim() && to.trim() && departDate;
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit || searching) return;
     setSearching(true);
@@ -55,15 +76,16 @@ const TripPlanner = () => {
       returnDate: returnDate || undefined,
       travelers: Math.max(1, Number(travelers) || 1),
     };
-    setTimeout(() => {
-      const options = generateOptions(search);
-      setResult({ ...search, options });
+    try {
+      const { options, source } = await searchTrip(search);
+      setResult({ ...search, options, source });
       setSelectedId(options[1]?.id ?? options[0]?.id ?? null);
+    } finally {
       setSearching(false);
-    }, 600);
+    }
   };
 
-  const handleSave = (option: TripOption) => {
+  const handleSave = async (option: TripOption) => {
     if (!user) {
       toast.info("Sign in to save trips");
       navigate("/auth", { state: { from: "/trip-planner" } });
@@ -81,11 +103,11 @@ const TripPlanner = () => {
       returnDate: result.returnDate,
       travelers: result.travelers,
     };
-    saveTrip(search, option);
-    toast.success("Trip saved — track it from Saved Trips");
+    const trip = await saveTrip(search, option);
+    if (trip) toast.success("Trip saved — track it from Saved Trips");
   };
 
-  const handleBook = (option: TripOption) => {
+  const handleBook = async (option: TripOption) => {
     if (!user) {
       toast.info("Sign in to book this trip");
       navigate("/auth", { state: { from: "/trip-planner" } });
@@ -99,10 +121,12 @@ const TripPlanner = () => {
       returnDate: result.returnDate,
       travelers: result.travelers,
     };
-    const booking = createBooking(search, option);
+    const booking = await createBooking(search, option);
     if (booking) {
       toast.success(`Booking confirmed (${booking.id})`);
       navigate("/my-bookings");
+    } else {
+      toast.error("Could not create booking");
     }
   };
 
@@ -256,6 +280,11 @@ const TripPlanner = () => {
                   {result.options.length} options for you
                 </h2>
                 <p className="text-muted-foreground">{summary}</p>
+                {result.source === "mock" && (
+                  <p className="text-xs text-muted-foreground/70 mt-1">
+                    Showing sample data — set <code>AMADEUS_API_KEY</code> in your env for live results
+                  </p>
+                )}
               </div>
 
               <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
