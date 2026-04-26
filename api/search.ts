@@ -9,6 +9,7 @@ import {
   type AmadeusFlightOffer,
   type AmadeusHotelOffer,
 } from "./_amadeus";
+import { rateLimit } from "./_rateLimit";
 import { generateOptions, type TripOption } from "../src/lib/trips";
 
 // Vercel serverless function. Returns trip options in the shape the frontend
@@ -127,16 +128,32 @@ export function buildOptionsFromAmadeus(
 interface MinimalRequest {
   method?: string;
   body?: unknown;
+  headers?: Record<string, string | string[] | undefined>;
 }
 
 interface MinimalResponse {
   status: (code: number) => MinimalResponse;
+  setHeader?: (name: string, value: string | number) => void;
   json: (body: unknown) => void;
+}
+
+function clientIp(req: MinimalRequest): string {
+  const fwd = req.headers?.["x-forwarded-for"];
+  const first = Array.isArray(fwd) ? fwd[0] : fwd?.split(",")[0]?.trim();
+  if (first) return first;
+  const real = req.headers?.["x-real-ip"];
+  return (Array.isArray(real) ? real[0] : real) ?? "unknown";
 }
 
 export default async function handler(req: MinimalRequest, res: MinimalResponse) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
+  const limit = rateLimit(clientIp(req));
+  if (!limit.ok) {
+    res.setHeader?.("Retry-After", String(limit.retryAfter ?? 60));
+    res.status(429).json({ error: "Rate limited", retryAfter: limit.retryAfter });
     return;
   }
   const body = (req.body ?? {}) as RequestBody;

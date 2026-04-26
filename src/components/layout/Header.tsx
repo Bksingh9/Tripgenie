@@ -51,7 +51,7 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav aria-label="Main navigation" className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -76,10 +76,10 @@ export function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="hidden md:flex">
+          <Button variant="ghost" size="icon" className="hidden md:flex" aria-label="Notifications">
             <Bell className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="hidden md:flex">
+          <Button variant="ghost" size="icon" className="hidden md:flex" aria-label="Saved trips">
             <Bookmark className="h-5 w-5" />
           </Button>
           {user ? (
@@ -116,6 +116,8 @@ export function Header() {
             size="icon"
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -130,7 +132,7 @@ export function Header() {
           exit={{ opacity: 0, y: -10 }}
           className="md:hidden glass border-t border-border/30"
         >
-          <nav className="container py-4 flex flex-col gap-2">
+          <nav aria-label="Mobile navigation" className="container py-4 flex flex-col gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
