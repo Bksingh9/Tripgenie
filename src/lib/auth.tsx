@@ -4,7 +4,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -85,7 +84,6 @@ function validate(email: string, password: string, name?: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const localStateRef = useRef<LocalState>(emptyState);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,7 +124,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const state = readLocal();
-    localStateRef.current = state;
     if (state.currentUserId) {
       const account = state.accounts.find((a) => a.id === state.currentUserId);
       if (account) setUser({ id: account.id, name: account.name, email: account.email });
@@ -171,7 +168,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accounts: [...state.accounts, account],
     };
     writeLocal(nextState);
-    localStateRef.current = nextState;
     const next: AuthUser = { id: account.id, name: account.name, email: account.email };
     setUser(next);
     return next;
@@ -204,7 +200,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const nextState: LocalState = { ...state, currentUserId: account.id };
     writeLocal(nextState);
-    localStateRef.current = nextState;
     const next: AuthUser = { id: account.id, name: account.name, email: account.email };
     setUser(next);
     return next;
@@ -219,7 +214,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const state = readLocal();
     const nextState: LocalState = { ...state, currentUserId: null };
     writeLocal(nextState);
-    localStateRef.current = nextState;
     setUser(null);
   }, []);
 

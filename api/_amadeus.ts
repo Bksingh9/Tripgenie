@@ -3,6 +3,24 @@
 
 const BASE = "https://test.api.amadeus.com";
 
+// Convert ISO 8601 duration (e.g. "PT2H15M") to "2h 15m". Handles missing
+// hours or minutes; returns the input unchanged if it doesn't match.
+export function durationFromIso(iso: string | undefined): string {
+  if (!iso) return "—";
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!m) return iso;
+  const h = m[1] ?? "0";
+  const min = m[2] ?? "0";
+  return `${h}h ${min}m`;
+}
+
+// Extract HH:MM from an ISO datetime ("2026-05-15T06:30:00") → "06:30".
+export function timeOfDay(iso: string | undefined): string | undefined {
+  if (!iso) return undefined;
+  const t = iso.split("T")[1];
+  return t?.slice(0, 5);
+}
+
 export const IATA: Record<string, string> = {
   mumbai: "BOM",
   delhi: "DEL",
@@ -37,9 +55,11 @@ export const IATA: Record<string, string> = {
 export function resolveIata(input: string): string | null {
   const cleaned = input.trim().toLowerCase().replace(/\s+/g, "");
   if (!cleaned) return null;
-  // Direct 3-letter code passthrough.
+  // Check the city map first so 3-letter city names ("Goa") map to their
+  // airport ("GOI") rather than passing through as a fake code ("GOA").
+  if (IATA[cleaned]) return IATA[cleaned];
   if (/^[a-z]{3}$/.test(cleaned)) return cleaned.toUpperCase();
-  return IATA[cleaned] ?? null;
+  return null;
 }
 
 interface CachedToken {
