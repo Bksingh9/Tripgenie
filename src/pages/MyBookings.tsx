@@ -3,69 +3,63 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Plane,
   Hotel,
+  Train,
+  Bus,
+  Car,
   Calendar,
   MapPin,
   Download,
   Share2,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { useBookings } from "@/lib/useTripStore";
+import { describeSearch, type BookingStatus, type TripSegmentType } from "@/lib/trips";
 
-const bookings = [
-  {
-    id: "TG-2024-001",
-    destination: "Goa",
-    from: "Mumbai",
-    dates: "Dec 24 - Dec 26, 2024",
-    status: "confirmed",
-    totalAmount: 11499,
-    segments: [
-      { type: "flight", title: "IndiGo 6E-2341", time: "Dec 24, 06:00" },
-      { type: "hotel", title: "Goa Marriott Resort", time: "2 nights" },
-    ],
-    bookedOn: "Dec 10, 2024",
-  },
-  {
-    id: "TG-2024-002",
-    destination: "Jaipur",
-    from: "Delhi",
-    dates: "Nov 15 - Nov 17, 2024",
-    status: "completed",
-    totalAmount: 8999,
-    segments: [
-      { type: "flight", title: "Air India AI-521", time: "Nov 15, 08:30" },
-      { type: "hotel", title: "ITC Rajputana", time: "2 nights" },
-    ],
-    bookedOn: "Nov 1, 2024",
-  },
-  {
-    id: "TG-2024-003",
-    destination: "Manali",
-    from: "Delhi",
-    dates: "Jan 5 - Jan 8, 2025",
-    status: "pending",
-    totalAmount: 16499,
-    segments: [
-      { type: "flight", title: "SpiceJet SG-123", time: "Jan 5, 07:00" },
-      { type: "hotel", title: "The Himalayan", time: "3 nights" },
-    ],
-    bookedOn: "Dec 12, 2024",
-  },
-];
-
-const statusConfig = {
+const statusConfig: Record<
+  BookingStatus,
+  { icon: typeof CheckCircle; color: string; text: string }
+> = {
   confirmed: { icon: CheckCircle, color: "bg-success text-primary-foreground", text: "Confirmed" },
   completed: { icon: CheckCircle, color: "bg-muted text-muted-foreground", text: "Completed" },
   pending: { icon: Clock, color: "bg-warning text-primary-foreground", text: "Pending" },
   cancelled: { icon: XCircle, color: "bg-destructive text-destructive-foreground", text: "Cancelled" },
 };
 
+const segmentIcon: Record<TripSegmentType, typeof Plane> = {
+  flight: Plane,
+  hotel: Hotel,
+  train: Train,
+  bus: Bus,
+  cab: Car,
+};
+
+const formatBookedOn = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
 const MyBookings = () => {
+  const { bookings, cancelBooking } = useBookings();
+
+  const handleShare = async (id: string) => {
+    const url = `${window.location.origin}/my-bookings#${id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Booking link copied");
+    } catch {
+      toast.error("Could not copy link");
+    }
+  };
+
   return (
     <Layout>
       <div className="container py-12">
@@ -74,7 +68,6 @@ const MyBookings = () => {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl mx-auto"
         >
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold mb-2">My Bookings</h1>
             <p className="text-muted-foreground">
@@ -82,34 +75,30 @@ const MyBookings = () => {
             </p>
           </div>
 
-          {/* Bookings List */}
           {bookings.length > 0 ? (
             <div className="space-y-4">
               {bookings.map((booking, index) => {
-                const status = statusConfig[booking.status as keyof typeof statusConfig];
+                const status = statusConfig[booking.status];
                 const StatusIcon = status.icon;
-
                 return (
                   <motion.div
                     key={booking.id}
+                    id={booking.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: index * 0.05 }}
                   >
                     <Card>
                       <CardContent className="p-6">
-                        {/* Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                           <div className="flex items-center gap-3">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                               <Plane className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-lg">
-                                  {booking.from} → {booking.destination}
-                                </h3>
-                              </div>
+                              <h3 className="font-bold text-lg">
+                                {booking.search.from} → {booking.search.to}
+                              </h3>
                               <p className="text-sm text-muted-foreground">
                                 Booking ID: {booking.id}
                               </p>
@@ -121,39 +110,46 @@ const MyBookings = () => {
                           </Badge>
                         </div>
 
-                        {/* Details */}
                         <div className="grid sm:grid-cols-2 gap-4 mb-4 p-4 rounded-xl bg-secondary/50">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{booking.dates}</span>
+                            <span className="text-sm">{describeSearch(booking.search)}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">Booked on {booking.bookedOn}</span>
+                            <span className="text-sm">
+                              Booked on {formatBookedOn(booking.bookedAt)}
+                            </span>
                           </div>
                         </div>
 
-                        {/* Segments */}
                         <div className="space-y-2 mb-4">
-                          {booking.segments.map((segment, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between p-3 rounded-xl border border-border"
-                            >
-                              <div className="flex items-center gap-3">
-                                {segment.type === "flight" ? (
-                                  <Plane className="h-4 w-4 text-primary" />
-                                ) : (
-                                  <Hotel className="h-4 w-4 text-primary" />
+                          {booking.option.segments.map((segment, idx) => {
+                            const SegmentIcon = segmentIcon[segment.type];
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between p-3 rounded-xl border border-border"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <SegmentIcon className="h-4 w-4 text-primary" />
+                                  <div>
+                                    <p className="text-sm font-medium">{segment.title}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {segment.subtitle}
+                                    </p>
+                                  </div>
+                                </div>
+                                {segment.time && (
+                                  <span className="text-sm text-muted-foreground">
+                                    {segment.time}
+                                  </span>
                                 )}
-                                <span className="text-sm font-medium">{segment.title}</span>
                               </div>
-                              <span className="text-sm text-muted-foreground">{segment.time}</span>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
 
-                        {/* Footer */}
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-border">
                           <div>
                             <p className="text-sm text-muted-foreground">Total Amount</p>
@@ -161,18 +157,38 @@ const MyBookings = () => {
                               ₹{booking.totalAmount.toLocaleString("en-IN")}
                             </p>
                           </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="gap-1">
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => toast.info("Receipt download coming soon")}
+                            >
                               <Download className="h-4 w-4" />
                               Receipt
                             </Button>
-                            <Button variant="outline" size="sm" className="gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => handleShare(booking.id)}
+                            >
                               <Share2 className="h-4 w-4" />
                               Share
                             </Button>
-                            <Button variant="default" size="sm">
-                              View Details
-                            </Button>
+                            {booking.status === "confirmed" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  cancelBooking(booking.id);
+                                  toast.success("Booking cancelled");
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>

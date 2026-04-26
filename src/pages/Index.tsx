@@ -7,22 +7,34 @@ import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { PopularDestinations } from "@/components/home/PopularDestinations";
 import { Plane, Sparkles } from "lucide-react";
 import heroImage from "@/assets/hero-travel.jpg";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
 
 const Index = () => {
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSearch = (message: string) => {
     setSearchQuery(message);
     setIsLoading(true);
-    
+
     // Simulate AI processing
     setTimeout(() => {
       setIsLoading(false);
       setShowResults(true);
     }, 2000);
+  };
+
+  const handleGetStarted = () => {
+    navigate(user ? "/trip-planner" : "/auth");
+  };
+
+  const handleWatchDemo = () => {
+    document.getElementById("popular-destinations")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -148,11 +160,17 @@ const Index = () => {
                 Join thousands of travelers who save time and money with TripGenie's AI-powered planning.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="px-8 py-3 rounded-xl bg-primary-foreground text-primary font-semibold hover:bg-primary-foreground/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-                  Get Started Free
+                <button
+                  onClick={handleGetStarted}
+                  className="px-8 py-3 rounded-xl bg-primary-foreground text-primary font-semibold hover:bg-primary-foreground/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                >
+                  {user ? "Plan a Trip" : "Get Started Free"}
                 </button>
-                <button className="px-8 py-3 rounded-xl bg-transparent border-2 border-primary-foreground/30 text-primary-foreground font-semibold hover:bg-primary-foreground/10 transition-all duration-300">
-                  Watch Demo
+                <button
+                  onClick={handleWatchDemo}
+                  className="px-8 py-3 rounded-xl bg-transparent border-2 border-primary-foreground/30 text-primary-foreground font-semibold hover:bg-primary-foreground/10 transition-all duration-300"
+                >
+                  See Destinations
                 </button>
               </div>
             </div>

@@ -1,40 +1,24 @@
 import { motion } from "framer-motion";
-import { 
-  Clock, 
-  IndianRupee, 
-  Leaf, 
-  Plane, 
-  Building2, 
-  Train, 
-  Bus, 
+import {
+  Clock,
+  IndianRupee,
+  Leaf,
+  Plane,
+  Building2,
+  Train,
+  Bus,
   Car,
   Star,
   TrendingDown,
   Zap,
-  Crown
+  Crown,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-interface TripSegment {
-  type: "flight" | "hotel" | "train" | "bus" | "cab";
-  title: string;
-  subtitle: string;
-  time?: string;
-  price: number;
-}
-
-interface TripOption {
-  id: string;
-  label: string;
-  labelType: "budget" | "value" | "comfort" | "luxury";
-  totalPrice: number;
-  totalDuration: string;
-  carbonOffset: string;
-  segments: TripSegment[];
-  savings?: number;
-}
+import type { TripOption } from "@/lib/trips";
 
 const labelConfig = {
   budget: { icon: TrendingDown, color: "bg-success text-primary-foreground", text: "Budget Banger" },
@@ -56,9 +40,20 @@ interface TripComparisonCardProps {
   index: number;
   isSelected?: boolean;
   onSelect?: () => void;
+  onBook?: () => void;
+  onSave?: () => void;
+  isSaved?: boolean;
 }
 
-export function TripComparisonCard({ option, index, isSelected, onSelect }: TripComparisonCardProps) {
+export function TripComparisonCard({
+  option,
+  index,
+  isSelected,
+  onSelect,
+  onBook,
+  onSave,
+  isSaved,
+}: TripComparisonCardProps) {
   const labelInfo = labelConfig[option.labelType];
   const LabelIcon = labelInfo.icon;
 
@@ -136,9 +131,40 @@ export function TripComparisonCard({ option, index, isSelected, onSelect }: Trip
             })}
           </div>
 
-          <Button variant={isSelected ? "hero" : "outline"} className="w-full mt-4">
-            {isSelected ? "Selected" : "Select This Trip"}
-          </Button>
+          {onBook ? (
+            <div className="flex gap-2 mt-4">
+              {onSave && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSave();
+                  }}
+                  aria-label={isSaved ? "Saved" : "Save trip"}
+                  className={isSaved ? "border-primary text-primary" : ""}
+                >
+                  {isSaved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+                </Button>
+              )}
+              <Button
+                variant="hero"
+                className="flex-1"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBook();
+                }}
+              >
+                Book Now
+              </Button>
+            </div>
+          ) : (
+            <Button variant={isSelected ? "hero" : "outline"} className="w-full mt-4">
+              {isSelected ? "Selected" : "Select This Trip"}
+            </Button>
+          )}
         </CardContent>
       </Card>
     </motion.div>

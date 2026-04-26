@@ -31,7 +31,7 @@ const destinations = [
 
 export function PopularDestinations() {
   return (
-    <section className="py-20">
+    <section id="popular-destinations" className="py-20">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

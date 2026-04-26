@@ -1,20 +1,31 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Calendar, 
-  Users, 
-  MapPin, 
-  ArrowRight, 
-  Plane, 
-  Train, 
-  Bus, 
+import {
+  Calendar,
+  Users,
+  MapPin,
+  ArrowRight,
+  Plane,
+  Train,
+  Bus,
   Hotel,
-  Sparkles
+  Sparkles,
+  Loader2,
 } from "lucide-react";
+import { TripComparisonCard } from "@/components/trips/TripComparisonCard";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
+import { useBookings, useSavedTrips } from "@/lib/useTripStore";
+import { describeSearch, generateOptions, type SearchInput, type TripOption } from "@/lib/trips";
+
+interface SearchState extends SearchInput {
+  options: TripOption[];
+}
 
 const TripPlanner = () => {
   const [from, setFrom] = useState("");
@@ -22,6 +33,80 @@ const TripPlanner = () => {
   const [departDate, setDepartDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [travelers, setTravelers] = useState("1");
+  const [searching, setSearching] = useState(false);
+  const [result, setResult] = useState<SearchState | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const { user } = useAuth();
+  const { saveTrip, isSaved } = useSavedTrips();
+  const { createBooking } = useBookings();
+  const navigate = useNavigate();
+
+  const canSubmit = from.trim() && to.trim() && departDate;
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit || searching) return;
+    setSearching(true);
+    const search: SearchInput = {
+      from: from.trim(),
+      to: to.trim(),
+      departDate,
+      returnDate: returnDate || undefined,
+      travelers: Math.max(1, Number(travelers) || 1),
+    };
+    setTimeout(() => {
+      const options = generateOptions(search);
+      setResult({ ...search, options });
+      setSelectedId(options[1]?.id ?? options[0]?.id ?? null);
+      setSearching(false);
+    }, 600);
+  };
+
+  const handleSave = (option: TripOption) => {
+    if (!user) {
+      toast.info("Sign in to save trips");
+      navigate("/auth", { state: { from: "/trip-planner" } });
+      return;
+    }
+    if (!result) return;
+    if (isSaved(option.id)) {
+      toast.info("This trip is already saved");
+      return;
+    }
+    const search: SearchInput = {
+      from: result.from,
+      to: result.to,
+      departDate: result.departDate,
+      returnDate: result.returnDate,
+      travelers: result.travelers,
+    };
+    saveTrip(search, option);
+    toast.success("Trip saved — track it from Saved Trips");
+  };
+
+  const handleBook = (option: TripOption) => {
+    if (!user) {
+      toast.info("Sign in to book this trip");
+      navigate("/auth", { state: { from: "/trip-planner" } });
+      return;
+    }
+    if (!result) return;
+    const search: SearchInput = {
+      from: result.from,
+      to: result.to,
+      departDate: result.departDate,
+      returnDate: result.returnDate,
+      travelers: result.travelers,
+    };
+    const booking = createBooking(search, option);
+    if (booking) {
+      toast.success(`Booking confirmed (${booking.id})`);
+      navigate("/my-bookings");
+    }
+  };
+
+  const summary = useMemo(() => (result ? describeSearch(result) : ""), [result]);
 
   return (
     <Layout>
@@ -53,111 +138,164 @@ const TripPlanner = () => {
                 Where are you going?
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">From</label>
-                  <Input
-                    placeholder="Mumbai, Delhi, Bangalore..."
-                    value={from}
-                    onChange={(e) => setFrom(e.target.value)}
-                  />
+            <CardContent>
+              <form className="space-y-6" onSubmit={handleSearch}>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">From</label>
+                    <Input
+                      placeholder="Mumbai, Delhi, Bangalore..."
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">To</label>
+                    <Input
+                      placeholder="Goa, Manali, Kerala..."
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">To</label>
-                  <Input
-                    placeholder="Goa, Manali, Kerala..."
-                    value={to}
-                    onChange={(e) => setTo(e.target.value)}
-                  />
-                </div>
-              </div>
 
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Departure
-                  </label>
-                  <Input
-                    type="date"
-                    value={departDate}
-                    onChange={(e) => setDepartDate(e.target.value)}
-                  />
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Departure
+                    </label>
+                    <Input
+                      type="date"
+                      value={departDate}
+                      onChange={(e) => setDepartDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Return
+                    </label>
+                    <Input
+                      type="date"
+                      value={returnDate}
+                      min={departDate || undefined}
+                      onChange={(e) => setReturnDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Travelers
+                    </label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={travelers}
+                      onChange={(e) => setTravelers(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Return
-                  </label>
-                  <Input
-                    type="date"
-                    value={returnDate}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Travelers
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={travelers}
-                    onChange={(e) => setTravelers(e.target.value)}
-                  />
-                </div>
-              </div>
 
-              {/* Transport Preferences */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Preferred Transport</label>
-                <div className="flex flex-wrap gap-3">
-                  {[
-                    { icon: Plane, label: "Flights" },
-                    { icon: Train, label: "Trains" },
-                    { icon: Bus, label: "Buses" },
-                    { icon: Hotel, label: "Hotels" },
-                  ].map((item) => (
-                    <button
-                      key={item.label}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
-                    >
-                      <item.icon className="h-4 w-4 text-primary" />
-                      <span className="text-sm">{item.label}</span>
-                    </button>
-                  ))}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Includes</label>
+                  <div className="flex flex-wrap gap-3">
+                    {[
+                      { icon: Plane, label: "Flights" },
+                      { icon: Train, label: "Trains" },
+                      { icon: Bus, label: "Buses" },
+                      { icon: Hotel, label: "Hotels" },
+                    ].map((item) => (
+                      <span
+                        key={item.label}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card text-sm text-muted-foreground"
+                      >
+                        <item.icon className="h-4 w-4 text-primary" />
+                        {item.label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <Button variant="hero" size="xl" className="w-full gap-2">
-                Find Best Options
-                <ArrowRight className="h-5 w-5" />
-              </Button>
+                <Button
+                  type="submit"
+                  variant="hero"
+                  size="xl"
+                  className="w-full gap-2"
+                  disabled={!canSubmit || searching}
+                >
+                  {searching ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Finding the best options...
+                    </>
+                  ) : (
+                    <>
+                      Find Best Options
+                      <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+              </form>
             </CardContent>
           </Card>
 
+          {/* Results */}
+          {result && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <div className="text-center">
+                <h2 className="text-2xl md:text-3xl font-bold mb-1">
+                  {result.options.length} options for you
+                </h2>
+                <p className="text-muted-foreground">{summary}</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+                {result.options.map((option, index) => (
+                  <TripComparisonCard
+                    key={option.id}
+                    option={option}
+                    index={index}
+                    isSelected={selectedId === option.id}
+                    onSelect={() => setSelectedId(option.id)}
+                    onBook={() => handleBook(option)}
+                    onSave={() => handleSave(option)}
+                    isSaved={isSaved(option.id)}
+                  />
+                ))}
+              </div>
+            </motion.section>
+          )}
+
           {/* Quick Tips */}
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              { title: "Flexible Dates?", desc: "Check the 'Flexible' option to see cheaper alternatives" },
-              { title: "Multi-City?", desc: "Add stops to your journey for a complete itinerary" },
-              { title: "Budget Limit?", desc: "Set a max budget and we'll find options within range" },
-            ].map((tip, index) => (
-              <motion.div
-                key={tip.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.1 }}
-                className="p-4 rounded-xl border border-border bg-card/50"
-              >
-                <h4 className="font-semibold text-sm mb-1">{tip.title}</h4>
-                <p className="text-xs text-muted-foreground">{tip.desc}</p>
-              </motion.div>
-            ))}
-          </div>
+          {!result && (
+            <div className="grid md:grid-cols-3 gap-4">
+              {[
+                { title: "Flexible Dates?", desc: "Try different return dates to see cheaper alternatives" },
+                { title: "Multi-City?", desc: "Plan stops by running multiple searches" },
+                { title: "Budget Limit?", desc: "We label options Budget, Value, Comfort, and Luxury" },
+              ].map((tip, index) => (
+                <motion.div
+                  key={tip.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
+                  className="p-4 rounded-xl border border-border bg-card/50"
+                >
+                  <h4 className="font-semibold text-sm mb-1">{tip.title}</h4>
+                  <p className="text-xs text-muted-foreground">{tip.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.div>
       </div>
     </Layout>
