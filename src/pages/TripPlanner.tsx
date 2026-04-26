@@ -123,7 +123,7 @@ const TripPlanner = () => {
     };
     const booking = await createBooking(search, option);
     if (booking) {
-      toast.success(`Booking confirmed (${booking.id})`);
+      toast.success(`Booking confirmed (${booking.code})`);
       navigate("/my-bookings");
     } else {
       toast.error("Could not create booking");

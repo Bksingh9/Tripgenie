@@ -50,8 +50,8 @@ const formatBookedOn = (iso: string) =>
 const MyBookings = () => {
   const { bookings, cancelBooking } = useBookings();
 
-  const handleShare = async (id: string) => {
-    const url = `${window.location.origin}/my-bookings#${id}`;
+  const handleShare = async (code: string) => {
+    const url = `${window.location.origin}/my-bookings#${code}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success("Booking link copied");
@@ -83,7 +83,7 @@ const MyBookings = () => {
                 return (
                   <motion.div
                     key={booking.id}
-                    id={booking.id}
+                    id={booking.code}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
@@ -99,8 +99,8 @@ const MyBookings = () => {
                               <h3 className="font-bold text-lg">
                                 {booking.search.from} → {booking.search.to}
                               </h3>
-                              <p className="text-sm text-muted-foreground">
-                                Booking ID: {booking.id}
+                              <p className="text-sm text-muted-foreground font-mono">
+                                {booking.code}
                               </p>
                             </div>
                           </div>
@@ -171,7 +171,7 @@ const MyBookings = () => {
                               variant="outline"
                               size="sm"
                               className="gap-1"
-                              onClick={() => handleShare(booking.id)}
+                              onClick={() => handleShare(booking.code)}
                             >
                               <Share2 className="h-4 w-4" />
                               Share

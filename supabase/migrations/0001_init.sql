@@ -19,7 +19,8 @@ create index if not exists saved_trips_user_id_idx on public.saved_trips (user_i
 create index if not exists saved_trips_saved_at_idx on public.saved_trips (saved_at desc);
 
 create table if not exists public.bookings (
-  id text primary key,
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
   user_id uuid not null references auth.users (id) on delete cascade,
   search jsonb not null,
   option jsonb not null,
@@ -30,6 +31,7 @@ create table if not exists public.bookings (
 
 create index if not exists bookings_user_id_idx on public.bookings (user_id);
 create index if not exists bookings_booked_at_idx on public.bookings (booked_at desc);
+create index if not exists bookings_code_idx on public.bookings (code);
 
 -- Row Level Security: each user only sees their own rows.
 alter table public.saved_trips enable row level security;

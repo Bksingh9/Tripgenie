@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { isSupabaseEnabled, supabase } from "@/lib/supabase";
 import {
@@ -7,7 +7,7 @@ import {
   type SavedTrip,
   type SearchInput,
   type TripOption,
-  makeBookingId,
+  makeBookingCode,
 } from "@/lib/trips";
 
 const SAVED_KEY = (userId: string) => `tripgenie.saved-trips.${userId}`;
@@ -41,6 +41,7 @@ interface SavedTripRow {
 
 interface BookingRow {
   id: string;
+  code: string;
   user_id: string;
   search: SearchInput;
   option: TripOption;
@@ -60,6 +61,7 @@ const rowToSavedTrip = (r: SavedTripRow): SavedTrip => ({
 
 const rowToBooking = (r: BookingRow): Booking => ({
   id: r.id,
+  code: r.code,
   search: r.search,
   option: r.option,
   status: r.status,
@@ -67,9 +69,22 @@ const rowToBooking = (r: BookingRow): Booking => ({
   bookedAt: r.booked_at,
 });
 
+// Keep a ref in sync with state so async mutations can read the latest value
+// without depending on a captured closure (which would go stale across rapid
+// successive calls).
+function useStateWithRef<T>(initial: T) {
+  const [state, setState] = useState<T>(initial);
+  const ref = useRef<T>(initial);
+  const set = useCallback((next: T) => {
+    ref.current = next;
+    setState(next);
+  }, []);
+  return [state, ref, set] as const;
+}
+
 export function useSavedTrips() {
   const { user } = useAuth();
-  const [savedTrips, setSavedTrips] = useState<SavedTrip[]>([]);
+  const [savedTrips, savedTripsRef, setSavedTrips] = useStateWithRef<SavedTrip[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -96,11 +111,11 @@ export function useSavedTrips() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, setSavedTrips]);
 
-  const writeLocal = useCallback(
+  const persistLocal = useCallback(
     (next: SavedTrip[]) => {
-      if (user) writeJSON(SAVED_KEY(user.id), next);
+      if (user && !isSupabaseEnabled) writeJSON(SAVED_KEY(user.id), next);
     },
     [user],
   );
@@ -113,7 +128,7 @@ export function useSavedTrips() {
   const saveTrip = useCallback(
     async (search: SearchInput, option: TripOption) => {
       if (!user) return null;
-      if (savedTrips.some((t) => t.option.id === option.id)) return null;
+      if (savedTripsRef.current.some((t) => t.option.id === option.id)) return null;
 
       if (isSupabaseEnabled && supabase) {
         const { data, error } = await supabase
@@ -132,7 +147,7 @@ export function useSavedTrips() {
           return null;
         }
         const trip = rowToSavedTrip(data as SavedTripRow);
-        setSavedTrips((prev) => [trip, ...prev]);
+        setSavedTrips([trip, ...savedTripsRef.current]);
         return trip;
       }
 
@@ -144,37 +159,38 @@ export function useSavedTrips() {
         alertActive: true,
         savedAt: new Date().toISOString(),
       };
-      const next = [trip, ...savedTrips];
+      const next = [trip, ...savedTripsRef.current];
       setSavedTrips(next);
-      writeLocal(next);
+      persistLocal(next);
       return trip;
     },
-    [savedTrips, user, writeLocal],
+    [user, savedTripsRef, setSavedTrips, persistLocal],
   );
 
   const removeSavedTrip = useCallback(
     async (id: string) => {
+      const next = savedTripsRef.current.filter((t) => t.id !== id);
       if (isSupabaseEnabled && supabase) {
         const { error } = await supabase.from("saved_trips").delete().eq("id", id);
         if (error) {
           console.error("Failed to remove saved trip:", error.message);
           return;
         }
-        setSavedTrips((prev) => prev.filter((t) => t.id !== id));
-        return;
       }
-      const next = savedTrips.filter((t) => t.id !== id);
       setSavedTrips(next);
-      writeLocal(next);
+      persistLocal(next);
     },
-    [savedTrips, writeLocal],
+    [savedTripsRef, setSavedTrips, persistLocal],
   );
 
   const toggleAlert = useCallback(
     async (id: string) => {
-      const trip = savedTrips.find((t) => t.id === id);
+      const trip = savedTripsRef.current.find((t) => t.id === id);
       if (!trip) return;
       const newValue = !trip.alertActive;
+      const next = savedTripsRef.current.map((t) =>
+        t.id === id ? { ...t, alertActive: newValue } : t,
+      );
       if (isSupabaseEnabled && supabase) {
         const { error } = await supabase
           .from("saved_trips")
@@ -185,13 +201,10 @@ export function useSavedTrips() {
           return;
         }
       }
-      const next = savedTrips.map((t) =>
-        t.id === id ? { ...t, alertActive: newValue } : t,
-      );
       setSavedTrips(next);
-      if (!isSupabaseEnabled) writeLocal(next);
+      persistLocal(next);
     },
-    [savedTrips, writeLocal],
+    [savedTripsRef, setSavedTrips, persistLocal],
   );
 
   return { savedTrips, saveTrip, removeSavedTrip, toggleAlert, isSaved };
@@ -199,7 +212,7 @@ export function useSavedTrips() {
 
 export function useBookings() {
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, bookingsRef, setBookings] = useStateWithRef<Booking[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -226,11 +239,11 @@ export function useBookings() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, setBookings]);
 
-  const writeLocal = useCallback(
+  const persistLocal = useCallback(
     (next: Booking[]) => {
-      if (user) writeJSON(BOOKINGS_KEY(user.id), next);
+      if (user && !isSupabaseEnabled) writeJSON(BOOKINGS_KEY(user.id), next);
     },
     [user],
   );
@@ -238,48 +251,59 @@ export function useBookings() {
   const createBooking = useCallback(
     async (search: SearchInput, option: TripOption) => {
       if (!user) return null;
-      const id = makeBookingId();
 
       if (isSupabaseEnabled && supabase) {
-        const { data, error } = await supabase
-          .from("bookings")
-          .insert({
-            id,
-            user_id: user.id,
-            search,
-            option,
-            status: "confirmed",
-            total_amount: option.totalPrice,
-          })
-          .select()
-          .single();
-        if (error) {
-          console.error("Failed to create booking:", error.message);
-          return null;
+        // Retry on the (astronomically unlikely) duplicate-code race.
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const code = makeBookingCode();
+          const { data, error } = await supabase
+            .from("bookings")
+            .insert({
+              code,
+              user_id: user.id,
+              search,
+              option,
+              status: "confirmed",
+              total_amount: option.totalPrice,
+            })
+            .select()
+            .single();
+          if (!error) {
+            const booking = rowToBooking(data as BookingRow);
+            setBookings([booking, ...bookingsRef.current]);
+            return booking;
+          }
+          if (error.code !== "23505") {
+            console.error("Failed to create booking:", error.message);
+            return null;
+          }
         }
-        const booking = rowToBooking(data as BookingRow);
-        setBookings((prev) => [booking, ...prev]);
-        return booking;
+        console.error("Failed to create booking: code collisions exhausted retries");
+        return null;
       }
 
       const booking: Booking = {
-        id,
+        id: crypto.randomUUID(),
+        code: makeBookingCode(),
         search,
         option,
         status: "confirmed",
         totalAmount: option.totalPrice,
         bookedAt: new Date().toISOString(),
       };
-      const next = [booking, ...bookings];
+      const next = [booking, ...bookingsRef.current];
       setBookings(next);
-      writeLocal(next);
+      persistLocal(next);
       return booking;
     },
-    [bookings, user, writeLocal],
+    [user, bookingsRef, setBookings, persistLocal],
   );
 
   const cancelBooking = useCallback(
     async (id: string) => {
+      const next: Booking[] = bookingsRef.current.map((b) =>
+        b.id === id ? { ...b, status: "cancelled" as BookingStatus } : b,
+      );
       if (isSupabaseEnabled && supabase) {
         const { error } = await supabase
           .from("bookings")
@@ -290,13 +314,10 @@ export function useBookings() {
           return;
         }
       }
-      const next: Booking[] = bookings.map((b) =>
-        b.id === id ? { ...b, status: "cancelled" as BookingStatus } : b,
-      );
       setBookings(next);
-      if (!isSupabaseEnabled) writeLocal(next);
+      persistLocal(next);
     },
-    [bookings, writeLocal],
+    [bookingsRef, setBookings, persistLocal],
   );
 
   return { bookings, createBooking, cancelBooking };

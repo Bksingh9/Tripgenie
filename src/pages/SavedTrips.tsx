@@ -30,7 +30,7 @@ const SavedTrips = () => {
     const booking = await createBooking(trip.search, trip.option);
     if (booking) {
       await removeSavedTrip(id);
-      toast.success(`Booking confirmed (${booking.id})`);
+      toast.success(`Booking confirmed (${booking.code})`);
       navigate("/my-bookings");
     } else {
       toast.error("Could not create booking");

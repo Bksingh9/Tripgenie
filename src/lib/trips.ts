@@ -42,6 +42,7 @@ export type BookingStatus = "confirmed" | "completed" | "pending" | "cancelled";
 
 export interface Booking {
   id: string;
+  code: string;
   search: SearchInput;
   option: TripOption;
   status: BookingStatus;
@@ -184,8 +185,15 @@ export function describeSearch(s: SearchInput): string {
   return [where, date].filter(Boolean).join(" • ");
 }
 
-export function makeBookingId(): string {
+// Human-readable booking reference, e.g. "TG-2026-A3K9PX". Not used as a
+// primary key — the PK is a uuid — so collisions are recoverable: we just
+// regenerate. The 6-char alphanumeric suffix gives 36^6 ≈ 2.1B values per
+// year, so collisions in practice approach zero.
+export function makeBookingCode(): string {
   const yr = new Date().getFullYear();
-  const rand = Math.floor(Math.random() * 9000 + 1000);
-  return `TG-${yr}-${rand}`;
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I/O/0/1
+  const buf = new Uint32Array(6);
+  crypto.getRandomValues(buf);
+  const suffix = Array.from(buf, (n) => alphabet[n % alphabet.length]).join("");
+  return `TG-${yr}-${suffix}`;
 }
