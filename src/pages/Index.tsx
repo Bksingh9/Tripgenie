@@ -5,8 +5,7 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { TripComparisonCard, demoTripOptions } from "@/components/trips/TripComparisonCard";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { PopularDestinations } from "@/components/home/PopularDestinations";
-import { Plane, Sparkles } from "lucide-react";
-import heroImage from "@/assets/hero-travel.jpg";
+import { Plane, Sparkles, Stars } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 
@@ -21,8 +20,6 @@ const Index = () => {
   const handleSearch = (message: string) => {
     setSearchQuery(message);
     setIsLoading(true);
-
-    // Simulate AI processing
     setTimeout(() => {
       setIsLoading(false);
       setShowResults(true);
@@ -39,85 +36,104 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroImage}
-            alt="Travel background"
-            className="w-full h-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background" />
-        </div>
-
-        {/* Floating Elements */}
+      {/* Hero */}
+      <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-aurora noise">
+        {/* Floating chrome */}
         <motion.div
-          animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-[10%] hidden lg:block"
+          animate={{ y: [0, -16, 0], rotate: [0, 4, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 left-[8%] hidden lg:block"
         >
-          <div className="h-16 w-16 rounded-2xl bg-primary/20 backdrop-blur-sm border border-primary/30 flex items-center justify-center">
-            <Plane className="h-8 w-8 text-primary" />
+          <div className="h-16 w-16 rounded-2xl bg-gradient-primary shadow-glow flex items-center justify-center rotate-6">
+            <Plane className="h-8 w-8 text-white" />
           </div>
         </motion.div>
 
         <motion.div
-          animate={{ y: [0, 20, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute top-1/3 right-[15%] hidden lg:block"
+          animate={{ y: [0, 18, 0], rotate: [0, -3, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute top-1/3 right-[12%] hidden lg:block"
         >
-          <div className="h-12 w-12 rounded-xl bg-primary/10 backdrop-blur-sm border border-primary/20 flex items-center justify-center">
-            <Sparkles className="h-6 w-6 text-primary" />
+          <div className="h-14 w-14 rounded-2xl bg-gradient-mint shadow-mint flex items-center justify-center -rotate-6">
+            <Stars className="h-7 w-7 text-white" />
           </div>
         </motion.div>
 
-        {/* Hero Content */}
-        <div className="container relative z-10 py-20">
+        <motion.div
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-1/4 left-[18%] hidden lg:block"
+        >
+          <div className="h-12 w-12 rounded-2xl bg-gradient-violet shadow-magenta flex items-center justify-center">
+            <Sparkles className="h-6 w-6 text-white" />
+          </div>
+        </motion.div>
+
+        {/* Hero content */}
+        <div className="container relative z-10 py-24">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium mb-6">
-                <Sparkles className="h-4 w-4" />
-                AI-Powered Travel Planning
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm font-medium mb-8">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span className="text-aurora font-semibold">AI-powered. Free to plan.</span>
               </div>
-              
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                Your travel plans,{" "}
-                <span className="text-gradient">sorted in seconds</span>
+
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 leading-[0.95]">
+                <span className="block">Plan your trip</span>
+                <span className="block text-aurora animate-gradient">like it's a vibe</span>
               </h1>
-              
-              <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-                Just tell us where you want to go. Our AI finds the perfect mix of flights, hotels, trains, and cabs at the best prices.
+
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+                Tell us where you wanna go. We mix flights, hotels, trains, and cabs into one
+                clean itinerary — at the best price you'll find anywhere.
               </p>
             </motion.div>
 
             <ChatInput onSubmit={handleSearch} isLoading={isLoading} />
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground"
+            >
+              <span>try:</span>
+              {[
+                "5 days in Goa under ₹15k",
+                "weekend in Manali for 2",
+                "beach trip in March",
+              ].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => handleSearch(q)}
+                  className="px-3 py-1 rounded-full glass hover:border-primary/50 hover:text-foreground transition-colors"
+                >
+                  {q}
+                </button>
+              ))}
+            </motion.div>
           </div>
         </div>
-
-        {/* Gradient Orbs */}
-        <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[150px] -z-10" />
-        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/10 rounded-full blur-[120px] -z-10" />
       </section>
 
-      {/* Results Section */}
+      {/* Results */}
       {showResults && (
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="py-16 bg-gradient-surface"
+          className="py-20 bg-gradient-surface"
         >
           <div className="container">
-            <div className="text-center mb-10">
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">
-                We found 4 perfect options for you
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-5xl font-black mb-3">
+                4 ways to make it happen
               </h2>
               <p className="text-muted-foreground">
-                Based on: "{searchQuery}"
+                Based on: <span className="text-foreground font-medium">"{searchQuery}"</span>
               </p>
             </div>
 
@@ -136,41 +152,37 @@ const Index = () => {
         </motion.section>
       )}
 
-      {/* Features Section */}
       <FeaturesSection />
-
-      {/* Popular Destinations */}
       <PopularDestinations />
 
-      {/* CTA Section */}
-      <section className="py-20">
+      {/* CTA */}
+      <section className="py-24">
         <div className="container">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-primary p-8 md:p-12 text-center"
+            className="relative overflow-hidden rounded-3xl bg-gradient-sunset animate-gradient p-8 md:p-16 text-center noise"
           >
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjIiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIi8+PC9nPjwvc3ZnPg==')] opacity-50" />
             <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
-                Ready to plan your next adventure?
+              <h2 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight">
+                Ready when you are
               </h2>
-              <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">
-                Join thousands of travelers who save time and money with TripGenie's AI-powered planning.
+              <p className="text-white/85 mb-8 max-w-xl mx-auto text-lg">
+                Thousands of travelers plan smarter trips with TripGenie. Your move.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={handleGetStarted}
-                  className="px-8 py-3 rounded-xl bg-primary-foreground text-primary font-semibold hover:bg-primary-foreground/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                  className="px-8 py-4 rounded-2xl bg-white text-primary font-bold text-base hover:scale-105 transition-transform shadow-elevated"
                 >
-                  {user ? "Plan a Trip" : "Get Started Free"}
+                  {user ? "Plan a trip" : "Start free"}
                 </button>
                 <button
                   onClick={handleWatchDemo}
-                  className="px-8 py-3 rounded-xl bg-transparent border-2 border-primary-foreground/30 text-primary-foreground font-semibold hover:bg-primary-foreground/10 transition-all duration-300"
+                  className="px-8 py-4 rounded-2xl glass text-white font-bold text-base hover:bg-white/15 transition-colors"
                 >
-                  See Destinations
+                  See destinations
                 </button>
               </div>
             </div>

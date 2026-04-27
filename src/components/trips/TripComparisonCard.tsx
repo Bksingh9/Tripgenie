@@ -15,17 +15,40 @@ import {
   Bookmark,
   BookmarkCheck,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { TripOption } from "@/lib/trips";
 
 const labelConfig = {
-  budget: { icon: TrendingDown, color: "bg-success text-primary-foreground", text: "Budget Banger" },
-  value: { icon: Star, color: "bg-primary", text: "Best Value" },
-  comfort: { icon: Zap, color: "bg-warning text-primary-foreground", text: "Comfort" },
-  luxury: { icon: Crown, color: "bg-gradient-primary text-primary-foreground", text: "Luxury" },
-};
+  budget: {
+    icon: TrendingDown,
+    text: "budget",
+    bg: "bg-tier-budget",
+    glow: "shadow-mint",
+    ring: "ring-success/30",
+  },
+  value: {
+    icon: Star,
+    text: "best value",
+    bg: "bg-tier-value",
+    glow: "shadow-mint",
+    ring: "ring-primary/30",
+  },
+  comfort: {
+    icon: Zap,
+    text: "comfort",
+    bg: "bg-tier-comfort",
+    glow: "shadow-glow",
+    ring: "ring-primary/40",
+  },
+  luxury: {
+    icon: Crown,
+    text: "luxury",
+    bg: "bg-tier-luxury animate-gradient",
+    glow: "shadow-magenta",
+    ring: "ring-accent-2/40",
+  },
+} as const;
 
 const segmentIcons = {
   flight: Plane,
@@ -54,56 +77,61 @@ export function TripComparisonCard({
   onSave,
   isSaved,
 }: TripComparisonCardProps) {
-  const labelInfo = labelConfig[option.labelType];
-  const LabelIcon = labelInfo.icon;
+  const tier = labelConfig[option.labelType];
+  const LabelIcon = tier.icon;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
+      transition={{ delay: index * 0.08, type: "spring", stiffness: 300, damping: 24 }}
+      whileHover={{ y: -4 }}
     >
       <Card
-        className={`relative cursor-pointer transition-all duration-300 ${
+        className={`relative cursor-pointer overflow-hidden border-border/40 transition-all duration-300 ${
           isSelected
-            ? "border-primary shadow-glow ring-2 ring-primary/30"
-            : "hover:border-primary/40"
+            ? `border-transparent ring-2 ${tier.ring} ${tier.glow}`
+            : "hover:border-border hover:shadow-elevated"
         }`}
         onClick={onSelect}
       >
-        {/* Label Badge */}
-        <div className="absolute -top-3 left-4">
-          <Badge className={`${labelInfo.color} gap-1 px-3 py-1 text-xs font-semibold shadow-lg`}>
+        {/* Tier ribbon along the top */}
+        <div className={`h-1.5 w-full ${tier.bg}`} />
+
+        {/* Sticker label, slightly overlapping */}
+        <div className="absolute top-3 left-4">
+          <span className={`sticker text-white ${tier.bg}`}>
             <LabelIcon className="h-3 w-3" />
-            {labelInfo.text}
-          </Badge>
+            {tier.text}
+          </span>
         </div>
 
-        <CardHeader className="pt-6 pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold flex items-center gap-1">
-              <IndianRupee className="h-5 w-5" />
-              {option.totalPrice.toLocaleString("en-IN")}
-            </CardTitle>
-            {option.savings && (
-              <Badge variant="outline" className="text-success border-success">
-                Save ₹{option.savings.toLocaleString("en-IN")}
-              </Badge>
-            )}
+        <CardContent className="pt-12 pb-5 px-5 space-y-4">
+          {/* Big price */}
+          <div>
+            <div className="flex items-baseline gap-1">
+              <IndianRupee className="h-5 w-5 text-muted-foreground self-center" />
+              <span className="display-num text-4xl">
+                {option.totalPrice.toLocaleString("en-IN")}
+              </span>
+              {option.savings && (
+                <span className="ml-auto sticker bg-success/15 text-success border border-success/30">
+                  save ₹{option.savings.toLocaleString("en-IN")}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1.5">
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {option.totalDuration}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Leaf className="h-3.5 w-3.5 text-success" />
+                {option.carbonOffset}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-            <span className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              {option.totalDuration}
-            </span>
-            <span className="flex items-center gap-1">
-              <Leaf className="h-4 w-4 text-success" />
-              {option.carbonOffset}
-            </span>
-          </div>
-        </CardHeader>
 
-        <CardContent className="space-y-3">
           {/* Segments */}
           <div className="space-y-2">
             {option.segments.map((segment, idx) => {
@@ -111,20 +139,24 @@ export function TripComparisonCard({
               return (
                 <div
                   key={idx}
-                  className="flex items-center gap-3 p-2 rounded-xl bg-secondary/50"
+                  className="flex items-center gap-3 p-2.5 rounded-xl bg-secondary/50 backdrop-blur-sm"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                    <SegmentIcon className="h-4 w-4 text-primary" />
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${tier.bg}`}>
+                    <SegmentIcon className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{segment.title}</p>
+                    <p className="text-sm font-semibold truncate">{segment.title}</p>
                     <p className="text-xs text-muted-foreground truncate">{segment.subtitle}</p>
                   </div>
                   <div className="text-right">
                     {segment.time && (
-                      <p className="text-xs text-muted-foreground">{segment.time}</p>
+                      <p className="text-xs text-muted-foreground font-mono-tabular">
+                        {segment.time}
+                      </p>
                     )}
-                    <p className="text-sm font-semibold">₹{segment.price.toLocaleString("en-IN")}</p>
+                    <p className="text-sm font-bold font-mono-tabular">
+                      ₹{segment.price.toLocaleString("en-IN")}
+                    </p>
                   </div>
                 </div>
               );
@@ -132,7 +164,7 @@ export function TripComparisonCard({
           </div>
 
           {onBook ? (
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 pt-1">
               {onSave && (
                 <Button
                   variant="outline"
@@ -150,19 +182,19 @@ export function TripComparisonCard({
               )}
               <Button
                 variant="hero"
-                className="flex-1"
+                className="flex-1 font-semibold"
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   onBook();
                 }}
               >
-                Book Now
+                Book it
               </Button>
             </div>
           ) : (
-            <Button variant={isSelected ? "hero" : "outline"} className="w-full mt-4">
-              {isSelected ? "Selected" : "Select This Trip"}
+            <Button variant={isSelected ? "hero" : "outline"} className="w-full">
+              {isSelected ? "Selected" : "Select this trip"}
             </Button>
           )}
         </CardContent>

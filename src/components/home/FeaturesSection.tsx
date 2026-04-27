@@ -4,70 +4,88 @@ import { Sparkles, Globe, Zap, Shield, TrendingDown, Clock } from "lucide-react"
 const features = [
   {
     icon: Sparkles,
-    title: "AI-Powered Planning",
-    description: "Just tell us where you want to go. Our AI finds the perfect combination of flights, hotels, and transport.",
+    title: "AI-powered planning",
+    description:
+      "Tell us where, we figure out the perfect mix of flights, hotels and transport.",
+    bg: "bg-gradient-primary",
+    glow: "shadow-glow",
   },
   {
     icon: Globe,
-    title: "Multimodal Journeys",
-    description: "Combine flights, trains, buses, cabs, and even ferries in one seamless itinerary.",
+    title: "Multimodal journeys",
+    description: "Flights, trains, buses, cabs, ferries — all stitched into one trip.",
+    bg: "bg-gradient-mint",
+    glow: "shadow-mint",
   },
   {
     icon: TrendingDown,
-    title: "Best Price Guarantee",
-    description: "We compare prices across 100+ providers to get you the best deals every time.",
+    title: "Best price guarantee",
+    description: "We compare 100+ providers so you get the cheapest deal every time.",
+    bg: "bg-gradient-violet",
+    glow: "shadow-magenta",
   },
   {
     icon: Clock,
-    title: "Real-Time Updates",
-    description: "Track prices and get alerts when they drop. Never miss a deal again.",
+    title: "Real-time price alerts",
+    description: "Track prices, get pinged the moment they drop. Don't miss the dip.",
+    bg: "bg-gradient-sunset",
+    glow: "shadow-glow",
   },
   {
     icon: Zap,
-    title: "Instant Booking",
-    description: "Book your entire trip in seconds. One checkout for flights, hotels, and more.",
+    title: "Instant booking",
+    description: "One checkout for everything. Out of cart, into vacation mode.",
+    bg: "bg-gradient-primary",
+    glow: "shadow-glow",
   },
   {
     icon: Shield,
-    title: "Secure & Trusted",
-    description: "Your payments are protected. Free cancellation on most bookings.",
+    title: "Secure & trusted",
+    description: "Payments protected, free cancellation on most bookings.",
+    bg: "bg-gradient-mint",
+    glow: "shadow-mint",
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section className="py-20 bg-gradient-surface">
-      <div className="container">
+    <section className="py-24 bg-gradient-surface relative overflow-hidden">
+      <div className="container relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Why travelers love <span className="text-gradient">TripGenie</span>
+          <h2 className="text-4xl md:text-6xl font-black mb-4 leading-tight">
+            Why people <span className="text-aurora animate-gradient">love</span> us
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            We're not just another booking site. We're your personal AI travel agent that actually understands what you want.
+          <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">
+            Not another booking site. A travel buddy that actually gets it.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="group p-6 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-elevated transition-all duration-300"
+              transition={{ delay: index * 0.08, type: "spring", stiffness: 300, damping: 22 }}
+              whileHover={{ y: -6 }}
+              className="group relative p-6 rounded-3xl glass hover:border-border transition-all duration-300"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                <feature.icon className="h-6 w-6" />
+              <div
+                className={`flex h-14 w-14 items-center justify-center rounded-2xl ${feature.bg} mb-5 group-hover:${feature.glow} transition-shadow duration-300`}
+              >
+                <feature.icon className="h-7 w-7 text-white" strokeWidth={2.4} />
               </div>
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.description}</p>
+              <h3 className="text-xl font-bold mb-2 leading-tight">{feature.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {feature.description}
+              </p>
             </motion.div>
           ))}
         </div>

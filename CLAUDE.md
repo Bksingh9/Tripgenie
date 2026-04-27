@@ -1,121 +1,128 @@
 # CLAUDE.md
 
-Single source of truth for Claude Code on this repo. Drop this file at the repo root.
-Loaded automatically at the start of every Claude Code session.
+Single source of truth for Claude Code on this repo. Loaded automatically at the
+start of every Claude Code session.
 
 ---
 
 ## 1. Stack
 
-- **Frontend / hosting:** Next.js on Vercel
-- **Database & auth:** Supabase (Postgres + Auth + Storage)
-- **Travel data API:** Amadeus Self-Service APIs (flights, hotels, locations)
+- **Frontend:** Vite + React 18 + TypeScript (SPA)
+- **Hosting:** Vercel — static `dist/` plus serverless functions in `api/`
+- **Database & auth:** Supabase (Postgres + Auth) — gracefully degrades to
+  localStorage when env vars are missing, so dev works zero-config
+- **Travel data API:** Amadeus Self-Service (flights + hotels) — also degrades
+  to a deterministic mock when keys are missing
+- **Styling:** Tailwind CSS + shadcn/ui (Radix primitives), Outfit + Space Grotesk
+- **Tests:** Vitest + @testing-library/react, jsdom env
 
-## 2. Conventions Claude must follow in this repo
+This is **not** a Next.js project. There are no route handlers, server
+components, or `"use client"` directives. The `api/` directory holds plain
+Vercel serverless functions that import from `../src/lib` for shared logic.
 
-- Server-only secrets (anything **without** the `NEXT_PUBLIC_` prefix) must never be
-  imported into a `"use client"` component or anything reachable from a client tree.
-- All Supabase queries from the server use the service-role client from
-  `lib/supabase/server.ts`. Browser queries use `lib/supabase/client.ts`.
-- Amadeus calls go through the wrapper in `lib/amadeus/client.ts` — token refresh
-  lives there. Never call `api.amadeus.com` directly from a route handler.
-- Vercel: every PR gets a preview deploy; `main` is production. Never commit
-  secrets — use `vercel env` or the dashboard.
+## 2. Conventions
+
+- Browser code uses Vite's `import.meta.env.VITE_*` for env vars. The `VITE_`
+  prefix is required for anything to be exposed to the browser bundle.
+- Server-only secrets (anything **without** the `VITE_` prefix, like
+  `AMADEUS_API_KEY`) are read via `process.env` inside `api/` only. They must
+  never be imported from `src/` — Vite would fail at runtime and even if it
+  didn't, the value would land in the browser bundle.
+- Supabase client lives at `src/lib/supabase.ts` (browser, anon key). There is
+  no service-role client today; RLS handles authorization. If a server-side
+  query is ever needed, create one inside `api/` and read the service-role key
+  from `process.env`.
+- Amadeus calls go through `api/_amadeus.ts` (token refresh + endpoint
+  wrappers). Never call `api.amadeus.com` directly from a function — use the
+  helper.
+- `/api/search` is rate-limited per IP via `api/_rateLimit.ts` (in-memory,
+  per-instance). Don't bypass it.
+- Vercel: `main` is production. PRs get preview deploys automatically. Never
+  commit secrets — use `vercel env` or the dashboard.
 
 ## 3. Useful commands
 
 | Command | Purpose |
 |---|---|
-| `npm run dev` | Local dev server |
-| `npm run typecheck` | Strict TypeScript pass |
-| `npm run db:types` | Regenerate Supabase types from the live schema |
-| `vercel env pull .env.local` | Sync local env from Vercel |
+| `npm run dev` | Local dev server (Vite, port 5173 by default) |
+| `vercel dev` | Local dev with `/api/*` functions wired up |
+| `npm run typecheck` | TypeScript build across all three project refs |
+| `npm run lint` | ESLint (must be 0 errors) |
+| `npm test` | Vitest run, all suites |
+| `npm run build` | Production build to `dist/` |
+| `vercel env pull .env.local` | Sync env from Vercel project to local file |
 | `vercel --prod` | Deploy to production |
 
----
-
-## 4. Required environment variables
+## 4. Environment variables
 
 Production values live in Vercel project settings; local values go in `.env.local`
-(gitignored). The full template is in section 7 below — copy it to `.env.example`
-and to `.env.local` before doing anything else.
+(gitignored). Template is `.env.example`. The full app runs with **none** set
+(localStorage auth, mock search) — each integration lights up when its keys
+are added.
 
 | Var | Source | Used by |
 |-----|--------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API | Client + server |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API | Client |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API | **Server only — never expose** |
-| `AMADEUS_CLIENT_ID` | developers.amadeus.com → My Self-Service Workspace | Server only |
-| `AMADEUS_CLIENT_SECRET` | developers.amadeus.com → My Self-Service Workspace | Server only |
-| `AMADEUS_HOSTNAME` | `test` (sandbox) or `production` | Server only |
-| `VERCEL_URL` | Injected by Vercel at build time | Server only |
+| `VITE_SUPABASE_URL` | Supabase → Project Settings → API | Browser |
+| `VITE_SUPABASE_ANON_KEY` | Supabase → Project Settings → API | Browser |
+| `AMADEUS_API_KEY` | developers.amadeus.com → My Self-Service Workspace | `api/` only |
+| `AMADEUS_API_SECRET` | developers.amadeus.com → My Self-Service Workspace | `api/` only |
 
----
+## 5. The `/setup` workflow
 
-## 5. The `/setup` workflow (Claude Code follows these steps)
-
-When the user asks to set up, configure, or "wire up" the project — or runs the
-slash command `/setup` — execute the steps below in order. If the user passes
-`--check`, skip prompts and jump to Step 5.5 (verification only).
+When the user asks to set up, configure, or "wire up" the project — or runs
+`/setup` — execute the steps below. With `--check`, skip prompts and jump to
+Step 5.5 (verification only).
 
 ### 5.1 Bootstrap local files
 
 1. If `.env.local` does not exist, copy `.env.example` to `.env.local`.
-2. Confirm `.env.local` is in `.gitignore`. If not, add it.
+2. Confirm `.env.local` is in `.gitignore` (it already is).
 
 ### 5.2 Supabase
 
 Ask the user to either:
 
-- **(a)** Open https://supabase.com/dashboard, create or select a project, then go to
-  **Project Settings → API** and copy the three values, OR
-- **(b)** If the `supabase` CLI is installed, run `supabase status` and paste the output.
+- **(a)** Open https://supabase.com/dashboard, create or select a project, go to
+  **Project Settings → API** and copy the values, OR
+- **(b)** If the `supabase` CLI is installed, run `supabase status` and paste
+  the output.
 
 Write into `.env.local`:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
 ```
 
-Then regenerate types:
+Run the migration once per project:
 
-```bash
-npm run db:types
-```
-
-If `supabase/migrations/` exists, ask before running `supabase db push` (it writes
-to the user's database).
+- Open the SQL Editor in the Supabase dashboard
+- Paste the contents of `supabase/migrations/0001_init.sql`
+- Run it. The migration is idempotent (uses `if not exists` / `drop policy if exists`).
 
 ### 5.3 Amadeus
 
-Direct the user to https://developers.amadeus.com → **My Self-Service Workspace** →
-create or open an app. Collect:
-
-- Client ID
-- Client Secret
-- Environment: `test` (sandbox) or `production`
+Direct the user to https://developers.amadeus.com → **My Self-Service Workspace**
+→ create or open an app. Collect the API Key and API Secret.
 
 Write into `.env.local`:
 
 ```
-AMADEUS_CLIENT_ID=...
-AMADEUS_CLIENT_SECRET=...
-AMADEUS_HOSTNAME=test
+AMADEUS_API_KEY=...
+AMADEUS_API_SECRET=...
 ```
 
-Sanity-check the credentials:
+Sanity-check:
 
 ```bash
-curl -s -X POST "https://${AMADEUS_HOSTNAME}.api.amadeus.com/v1/security/oauth2/token" \
+curl -s -X POST "https://test.api.amadeus.com/v1/security/oauth2/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials&client_id=${AMADEUS_CLIENT_ID}&client_secret=${AMADEUS_CLIENT_SECRET}" \
+  -d "grant_type=client_credentials&client_id=${AMADEUS_API_KEY}&client_secret=${AMADEUS_API_SECRET}" \
   | jq .access_token
 ```
 
 Pass: response contains an `access_token`.
-Fail with `invalid_client`: the Client ID/Secret pair is wrong.
+Fail with `invalid_client`: the key/secret pair is wrong.
 
 ### 5.4 Vercel
 
@@ -146,84 +153,65 @@ vercel --prod
 
 Run these and report pass/fail per row:
 
-1. `.env.local` exists and contains every key from `.env.example` (no empty values).
+1. `.env.local` exists and contains every key from `.env.example` (warn but
+   don't fail if `VITE_SUPABASE_*` or `AMADEUS_*` are empty — those are
+   optional, the app still runs in degraded mode).
 2. `npm run typecheck` exits 0.
-3. The Amadeus OAuth curl returns an `access_token`.
-4. `curl -s "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/?apikey=$NEXT_PUBLIC_SUPABASE_ANON_KEY"` returns HTTP 200.
-5. `vercel env ls production` lists every expected key.
+3. `npm run lint` exits 0.
+4. `npm test` exits 0.
+5. The Amadeus OAuth curl above returns an `access_token` (skip if `AMADEUS_*`
+   not set).
+6. `curl -s "$VITE_SUPABASE_URL/rest/v1/?apikey=$VITE_SUPABASE_ANON_KEY"`
+   returns HTTP 200 (skip if `VITE_SUPABASE_*` not set).
+7. `vercel env ls production` lists every expected key.
 
 Print this summary at the end:
 
 ```
 | Check               | Status     |
 |---------------------|------------|
-| .env.local complete | OK / FAIL  |
+| .env.local present  | OK / WARN  |
 | typecheck           | OK / FAIL  |
-| Amadeus auth        | OK / FAIL  |
-| Supabase reachable  | OK / FAIL  |
+| lint                | OK / FAIL  |
+| tests               | OK / FAIL  |
+| Amadeus auth        | OK / SKIP  |
+| Supabase reachable  | OK / SKIP  |
 | Vercel env synced   | OK / FAIL  |
 ```
 
-For any FAIL, give the user the exact remediation command — never just say "this failed".
+For any FAIL, give the exact remediation command — never just say "this failed".
 
----
+## 6. Common gotchas
 
-## 6. Common gotchas (mention these proactively when relevant)
+- **Browser leaks of server secrets.** Anything imported transitively from
+  `src/main.tsx` ends up in the browser bundle. Never import from `api/` into
+  `src/` — only the other way around (`api/` may import from `../src/lib/*`
+  for pure helpers).
+- **Vite env var prefix.** `process.env.SUPABASE_URL` will be `undefined` in
+  the browser. Use `import.meta.env.VITE_SUPABASE_URL`.
+- **Amadeus 401 in production but works in test.** Production credentials are
+  separate. Request production access, add billing, create a new app in the
+  production workspace.
+- **Vercel preview deploys missing env vars.** `vercel env add` defaults to
+  one environment. Loop covers all three (see 5.4).
+- **Rate limiting (`api/_rateLimit.ts`)** is per-Vercel-instance, not global.
+  Fine for the free Amadeus quota (10/sec, 10K/month). For higher scale, swap
+  for an edge KV like Upstash.
+- **Tree-shaking by env.** Vite removes the Supabase / live-search branches at
+  build time when env vars are unset. Setting envs in Vercel triggers a fresh
+  build that includes those branches.
 
-- **`SUPABASE_SERVICE_ROLE_KEY` leaked into the client bundle.** Anything imported
-  by a client component ends up in the browser. Keep service-role usage inside
-  route handlers or server components only.
-- **Amadeus 401 in production but works in test.** Production uses a separate set
-  of credentials. Request production access, add a billing method, then create a
-  *new* app inside the production workspace.
-- **Vercel preview deploys missing env vars.** `vercel env add` defaults to one
-  environment at a time. The loop in 5.4 covers all three.
-- **CORS on Supabase Storage.** Add the Vercel domain under Supabase dashboard →
-  Storage → Settings → Allowed origins.
+## 7. `.env.example` template
 
----
-
-## 7. `.env.example` template (also save this as `.env.example` in the repo)
+The current template lives at `.env.example` in the repo root. Reproduced
+here for reference:
 
 ```dotenv
-# Copy this file to .env.local and fill in real values.
-# .env.local is gitignored — never commit secrets.
+# Frontend (browser-exposed — VITE_ prefix)
+VITE_SUPABASE_URL=""
+VITE_SUPABASE_ANON_KEY=""
 
-# ---- Supabase ---------------------------------------------------------
-# Project Settings → API in the Supabase dashboard
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-# ---- Amadeus ----------------------------------------------------------
-# developers.amadeus.com → My Self-Service Workspace → your app
-AMADEUS_CLIENT_ID=
-AMADEUS_CLIENT_SECRET=
-# 'test' for sandbox, 'production' once you've upgraded
-AMADEUS_HOSTNAME=test
-
-# ---- Vercel -----------------------------------------------------------
-# VERCEL_URL is injected automatically at build time on Vercel.
-# Set this only for local dev if you need to mimic the deployed URL.
-# VERCEL_URL=
+# Server-only (api/ functions, never browser)
+AMADEUS_API_KEY=""
+AMADEUS_API_SECRET=""
 ```
-
----
-
-## 8. Optional: register `/setup` as a slash command
-
-If you want `/setup` to appear as a real slash command inside Claude Code, create
-`.claude/commands/setup.md` with this front-matter and a one-line body that points
-back to section 5 of this file:
-
-```md
----
-description: Walk through Supabase + Amadeus + Vercel setup for production use
-allowed-tools: Bash, Read, Write, Edit
-argument-hint: "[--check] to only verify env vars without prompting"
----
-
-Follow section 5 of CLAUDE.md. If $ARGUMENTS contains --check, skip to 5.5.
-```
-
-That's it — Claude Code now has everything it needs in one file.
