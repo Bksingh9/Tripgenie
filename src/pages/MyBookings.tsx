@@ -1,9 +1,10 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Plane,
   Hotel,
   Calendar,
@@ -12,49 +13,63 @@ import {
   Share2,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { getBookings } from "@/lib/api";
 
-const bookings = [
+interface BookingDisplay {
+  id: string;
+  destination: string;
+  from: string;
+  dates: string;
+  status: string;
+  totalAmount: number;
+  segments: { type: string; title: string; time: string }[];
+  bookedOn: string;
+}
+
+const DEMO_BOOKINGS: BookingDisplay[] = [
   {
-    id: "TG-2024-001",
+    id: "TG-2026-001",
     destination: "Goa",
     from: "Mumbai",
-    dates: "Dec 24 - Dec 26, 2024",
+    dates: "Jun 10 - Jun 12, 2026",
     status: "confirmed",
     totalAmount: 11499,
     segments: [
-      { type: "flight", title: "IndiGo 6E-2341", time: "Dec 24, 06:00" },
+      { type: "flight", title: "IndiGo 6E-2341", time: "Jun 10, 06:00" },
       { type: "hotel", title: "Goa Marriott Resort", time: "2 nights" },
     ],
-    bookedOn: "Dec 10, 2024",
+    bookedOn: "May 20, 2026",
   },
   {
-    id: "TG-2024-002",
+    id: "TG-2026-002",
     destination: "Jaipur",
     from: "Delhi",
-    dates: "Nov 15 - Nov 17, 2024",
+    dates: "Apr 15 - Apr 17, 2026",
     status: "completed",
     totalAmount: 8999,
     segments: [
-      { type: "flight", title: "Air India AI-521", time: "Nov 15, 08:30" },
+      { type: "flight", title: "Air India AI-521", time: "Apr 15, 08:30" },
       { type: "hotel", title: "ITC Rajputana", time: "2 nights" },
     ],
-    bookedOn: "Nov 1, 2024",
+    bookedOn: "Apr 1, 2026",
   },
   {
-    id: "TG-2024-003",
+    id: "TG-2026-003",
     destination: "Manali",
     from: "Delhi",
-    dates: "Jan 5 - Jan 8, 2025",
+    dates: "Jul 5 - Jul 8, 2026",
     status: "pending",
     totalAmount: 16499,
     segments: [
-      { type: "flight", title: "SpiceJet SG-123", time: "Jan 5, 07:00" },
+      { type: "flight", title: "SpiceJet SG-123", time: "Jul 5, 07:00" },
       { type: "hotel", title: "The Himalayan", time: "3 nights" },
     ],
-    bookedOn: "Dec 12, 2024",
+    bookedOn: "May 22, 2026",
   },
 ];
 
@@ -66,6 +81,51 @@ const statusConfig = {
 };
 
 const MyBookings = () => {
+  const [bookings, setBookings] = useState<BookingDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user, isConfigured } = useAuth();
+
+  useEffect(() => {
+    loadBookings();
+  }, [user]);
+
+  const loadBookings = async () => {
+    setLoading(true);
+    try {
+      if (user && isConfigured) {
+        const dbBookings = await getBookings(user.id);
+        setBookings(
+          dbBookings.map((b) => ({
+            id: b.booking_ref,
+            destination: b.destination,
+            from: b.origin,
+            dates: b.dates,
+            status: b.status,
+            totalAmount: Number(b.total_amount),
+            segments: (b.segments as { type: string; title: string; time: string }[]) || [],
+            bookedOn: new Date(b.booked_on).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
+          }))
+        );
+      } else {
+        setBookings(DEMO_BOOKINGS);
+      }
+    } catch {
+      setBookings(DEMO_BOOKINGS);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container py-24 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="container py-12">
@@ -74,19 +134,15 @@ const MyBookings = () => {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-4xl mx-auto"
         >
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold mb-2">My Bookings</h1>
-            <p className="text-muted-foreground">
-              View and manage all your travel bookings
-            </p>
+            <p className="text-muted-foreground">View and manage all your travel bookings</p>
           </div>
 
-          {/* Bookings List */}
           {bookings.length > 0 ? (
             <div className="space-y-4">
               {bookings.map((booking, index) => {
-                const status = statusConfig[booking.status as keyof typeof statusConfig];
+                const status = statusConfig[booking.status as keyof typeof statusConfig] || statusConfig.pending;
                 const StatusIcon = status.icon;
 
                 return (
@@ -98,21 +154,14 @@ const MyBookings = () => {
                   >
                     <Card>
                       <CardContent className="p-6">
-                        {/* Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                           <div className="flex items-center gap-3">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                               <Plane className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-lg">
-                                  {booking.from} → {booking.destination}
-                                </h3>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                Booking ID: {booking.id}
-                              </p>
+                              <h3 className="font-bold text-lg">{booking.from} → {booking.destination}</h3>
+                              <p className="text-sm text-muted-foreground">Booking ID: {booking.id}</p>
                             </div>
                           </div>
                           <Badge className={`${status.color} gap-1`}>
@@ -121,7 +170,6 @@ const MyBookings = () => {
                           </Badge>
                         </div>
 
-                        {/* Details */}
                         <div className="grid sm:grid-cols-2 gap-4 mb-4 p-4 rounded-xl bg-secondary/50">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -133,19 +181,11 @@ const MyBookings = () => {
                           </div>
                         </div>
 
-                        {/* Segments */}
                         <div className="space-y-2 mb-4">
                           {booking.segments.map((segment, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between p-3 rounded-xl border border-border"
-                            >
+                            <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-border">
                               <div className="flex items-center gap-3">
-                                {segment.type === "flight" ? (
-                                  <Plane className="h-4 w-4 text-primary" />
-                                ) : (
-                                  <Hotel className="h-4 w-4 text-primary" />
-                                )}
+                                {segment.type === "flight" ? <Plane className="h-4 w-4 text-primary" /> : <Hotel className="h-4 w-4 text-primary" />}
                                 <span className="text-sm font-medium">{segment.title}</span>
                               </div>
                               <span className="text-sm text-muted-foreground">{segment.time}</span>
@@ -153,13 +193,10 @@ const MyBookings = () => {
                           ))}
                         </div>
 
-                        {/* Footer */}
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-border">
                           <div>
                             <p className="text-sm text-muted-foreground">Total Amount</p>
-                            <p className="text-2xl font-bold">
-                              ₹{booking.totalAmount.toLocaleString("en-IN")}
-                            </p>
+                            <p className="text-2xl font-bold">₹{booking.totalAmount.toLocaleString("en-IN")}</p>
                           </div>
                           <div className="flex gap-2">
                             <Button variant="outline" size="sm" className="gap-1">
@@ -170,9 +207,7 @@ const MyBookings = () => {
                               <Share2 className="h-4 w-4" />
                               Share
                             </Button>
-                            <Button variant="default" size="sm">
-                              View Details
-                            </Button>
+                            <Button variant="default" size="sm">View Details</Button>
                           </div>
                         </div>
                       </CardContent>
@@ -186,9 +221,7 @@ const MyBookings = () => {
               <CardContent>
                 <Plane className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No bookings yet</h3>
-                <p className="text-muted-foreground mb-6">
-                  Your travel bookings will appear here
-                </p>
+                <p className="text-muted-foreground mb-6">Your travel bookings will appear here</p>
                 <Link to="/trip-planner">
                   <Button variant="hero">Plan Your First Trip</Button>
                 </Link>

@@ -3,36 +3,48 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { TripComparisonCard, demoTripOptions } from "@/components/trips/TripComparisonCard";
+import { TripComparisonCard } from "@/components/trips/TripComparisonCard";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { PopularDestinations } from "@/components/home/PopularDestinations";
 import { AffiliateBooking } from "@/components/monetization/AffiliateBooking";
 import { AdBanner } from "@/components/monetization/AdBanner";
+import { planTrip, type GeneratedTripOption } from "@/lib/ai";
 import { Plane, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import heroImage from "@/assets/hero-travel.jpg";
 
 const Index = () => {
+  const [tripOptions, setTripOptions] = useState<GeneratedTripOption[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchDestination, setSearchDestination] = useState("");
 
-  const handleSearch = (message: string) => {
+  const handleSearch = async (message: string) => {
     setSearchQuery(message);
     setIsLoading(true);
-    
-    // Simulate AI processing
-    setTimeout(() => {
-      setIsLoading(false);
+    setShowResults(false);
+    setSelectedTrip(null);
+
+    try {
+      const options = await planTrip(message);
+      setTripOptions(options);
       setShowResults(true);
-    }, 2000);
+
+      const dest = message.match(/(?:to|in|visit)\s+(\w+)/i)?.[1] || "India";
+      setSearchDestination(dest);
+    } catch (err) {
+      toast.error("Failed to generate trip options. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <Layout>
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Background */}
         <div className="absolute inset-0 z-0">
           <img
             src={heroImage}
@@ -42,7 +54,6 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background" />
         </div>
 
-        {/* Floating Elements */}
         <motion.div
           animate={{ y: [0, -20, 0] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -63,7 +74,6 @@ const Index = () => {
           </div>
         </motion.div>
 
-        {/* Hero Content */}
         <div className="container relative z-10 py-20">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
@@ -75,12 +85,12 @@ const Index = () => {
                 <Sparkles className="h-4 w-4" />
                 AI-Powered Travel Planning
               </div>
-              
+
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
                 Your travel plans,{" "}
                 <span className="text-gradient">sorted in seconds</span>
               </h1>
-              
+
               <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Just tell us where you want to go. Our AI finds the perfect mix of flights, hotels, trains, and cabs at the best prices.
               </p>
@@ -90,13 +100,12 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Gradient Orbs */}
         <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[150px] -z-10" />
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/10 rounded-full blur-[120px] -z-10" />
       </section>
 
       {/* Results Section */}
-      {showResults && (
+      {showResults && tripOptions.length > 0 && (
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -105,7 +114,7 @@ const Index = () => {
           <div className="container">
             <div className="text-center mb-10">
               <h2 className="text-2xl md:text-3xl font-bold mb-2">
-                We found 4 perfect options for you
+                We found {tripOptions.length} perfect options for you
               </h2>
               <p className="text-muted-foreground">
                 Based on: "{searchQuery}"
@@ -113,7 +122,7 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-              {demoTripOptions.map((option, index) => (
+              {tripOptions.map((option, index) => (
                 <TripComparisonCard
                   key={option.id}
                   option={option}
@@ -128,7 +137,7 @@ const Index = () => {
       )}
 
       {/* Affiliate Booking Partners */}
-      {showResults && <AffiliateBooking destination="Goa" />}
+      {showResults && <AffiliateBooking destination={searchDestination} />}
 
       {/* Features Section */}
       <FeaturesSection />

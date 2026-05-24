@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useAuth } from "./AuthContext";
+import { updateSubscriptionTier } from "@/lib/api";
 
 export type SubscriptionTier = "free" | "pro" | "premium";
 
@@ -22,11 +24,24 @@ const TIER_LIMITS: Record<SubscriptionTier, { savedTrips: number; showAds: boole
 };
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
+  const { user, profile } = useAuth();
+
   const [tier, setTier] = useState<SubscriptionTier>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "pro" || stored === "premium") return stored;
     return "free";
   });
+
+  // Sync tier from database profile when available
+  useEffect(() => {
+    if (profile?.subscription_tier) {
+      const dbTier = profile.subscription_tier as SubscriptionTier;
+      if (dbTier !== tier) {
+        setTier(dbTier);
+        localStorage.setItem(STORAGE_KEY, dbTier);
+      }
+    }
+  }, [profile]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, tier);
@@ -39,10 +54,20 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     const plan = params.get("plan");
     if (success === "true" && (plan === "pro" || plan === "premium")) {
       setTier(plan);
-      // Clean URL
+      // Persist to database if logged in
+      if (user) {
+        updateSubscriptionTier(user.id, plan).catch(() => {});
+      }
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, []);
+  }, [user]);
+
+  const handleUpgrade = (newTier: SubscriptionTier) => {
+    setTier(newTier);
+    if (user) {
+      updateSubscriptionTier(user.id, newTier).catch(() => {});
+    }
+  };
 
   const limits = TIER_LIMITS[tier];
 
@@ -52,7 +77,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     isPremium: tier === "premium",
     savedTripsLimit: limits.savedTrips,
     showAds: limits.showAds,
-    upgradeTo: setTier,
+    upgradeTo: handleUpgrade,
   };
 
   return (
