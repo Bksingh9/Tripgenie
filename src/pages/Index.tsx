@@ -9,6 +9,8 @@ import { PopularDestinations } from "@/components/home/PopularDestinations";
 import { AffiliateBooking } from "@/components/monetization/AffiliateBooking";
 import { AdBanner } from "@/components/monetization/AdBanner";
 import { planTrip, type GeneratedTripOption } from "@/lib/ai";
+import { TripInsights } from "@/components/trips/TripInsights";
+import { useTripAgents } from "@/hooks/useTripAgents";
 import { Plane, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import heroImage from "@/assets/hero-travel.jpg";
@@ -20,6 +22,7 @@ const Index = () => {
   const [selectedTrip, setSelectedTrip] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchDestination, setSearchDestination] = useState("");
+  const { plan: agentPlan, search: runAgents } = useTripAgents();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -36,12 +39,15 @@ const Index = () => {
     setSelectedTrip(null);
 
     try {
-      const options = await planTrip(message);
-      setTripOptions(options);
-      setShowResults(true);
-
       const dest = message.match(/(?:to|in|visit)\s+(\w+)/i)?.[1] || "India";
       setSearchDestination(dest);
+
+      const [options] = await Promise.all([
+        planTrip(message),
+        runAgents({ origin: "Mumbai", destination: dest, travelers: 1 }),
+      ]);
+      setTripOptions(options);
+      setShowResults(true);
     } catch (err) {
       toast.error("Failed to generate trip options. Please try again.");
     } finally {
@@ -142,6 +148,15 @@ const Index = () => {
             </div>
           </div>
         </motion.section>
+      )}
+
+      {/* Agent Insights */}
+      {showResults && agentPlan && (
+        <section className="py-10">
+          <div className="container max-w-5xl">
+            <TripInsights plan={agentPlan} />
+          </div>
+        </section>
       )}
 
       {/* Affiliate Booking Partners */}

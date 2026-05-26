@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TripComparisonCard } from "@/components/trips/TripComparisonCard";
+import { TripInsights } from "@/components/trips/TripInsights";
 import { AffiliateBooking } from "@/components/monetization/AffiliateBooking";
 import { planTrip, type GeneratedTripOption } from "@/lib/ai";
+import { useTripAgents } from "@/hooks/useTripAgents";
 import {
   Calendar,
   Users,
@@ -22,6 +24,7 @@ import {
 import { toast } from "sonner";
 
 const TripPlanner = () => {
+  const { plan: agentPlan, search: runAgents } = useTripAgents();
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [departDate, setDepartDate] = useState("");
@@ -53,7 +56,10 @@ const TripPlanner = () => {
     const query = `${from} to ${to}${departDate ? `, departing ${departDate}` : ""}${returnDate ? `, returning ${returnDate}` : ""}, ${travelers} traveler${Number(travelers) > 1 ? "s" : ""}, prefer ${selectedTransports.join(", ").toLowerCase()}`;
 
     try {
-      const options = await planTrip(query);
+      const [options] = await Promise.all([
+        planTrip(query),
+        runAgents({ origin: from, destination: to, departDate, returnDate, travelers: Number(travelers) }),
+      ]);
       setTripOptions(options);
       setShowResults(true);
     } catch {
@@ -183,6 +189,8 @@ const TripPlanner = () => {
                   />
                 ))}
               </div>
+
+              {agentPlan && <TripInsights plan={agentPlan} />}
 
               <AffiliateBooking destination={to} />
             </motion.div>
