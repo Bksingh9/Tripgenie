@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -20,6 +20,14 @@ const Index = () => {
   const [selectedTrip, setSelectedTrip] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchDestination, setSearchDestination] = useState("");
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const agent = searchParams.get("agent");
+    if (agent === "demo" && !showResults && !isLoading) {
+      handleSearch("Weekend trip from Mumbai to Goa under ₹15k");
+    }
+  }, []);
 
   const handleSearch = async (message: string) => {
     setSearchQuery(message);
