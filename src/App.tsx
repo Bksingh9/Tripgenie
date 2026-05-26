@@ -13,6 +13,7 @@ import MyBookings from "./pages/MyBookings";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Pricing from "./pages/Pricing";
+import AgencyLanding from "./pages/agency/AgencyLanding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,8 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/agency" element={<AgencyLanding />} />
+              <Route path="/for-agencies" element={<AgencyLanding />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

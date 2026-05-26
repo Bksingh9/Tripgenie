@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/saved-trips", label: "Saved" },
   { href: "/my-bookings", label: "Bookings" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/agency", label: "For Agencies" },
 ];
 
 export function Header() {
