@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SupportWidget } from "@/components/monetization/SupportWidget";
 import Index from "./pages/Index";
 import TripPlanner from "./pages/TripPlanner";
@@ -29,14 +30,13 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/trip-planner" element={<TripPlanner />} />
-              <Route path="/saved-trips" element={<SavedTrips />} />
-              <Route path="/my-bookings" element={<MyBookings />} />
+              <Route path="/saved-trips" element={<ProtectedRoute><SavedTrips /></ProtectedRoute>} />
+              <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/agency" element={<AgencyLanding />} />
               <Route path="/for-agencies" element={<AgencyLanding />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportWidget />

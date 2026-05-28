@@ -41,8 +41,11 @@ export function AdBanner({ slot, format = "horizontal", className = "" }: AdBann
     vertical: "min-h-[600px] max-w-[300px]",
   };
 
-  // Show placeholder if no pub ID configured
+  // Don't show placeholder — only show real ads
   if (!pubId) {
+    return null;
+  }
+  if (false) {
     return (
       <div
         className={`w-full ${sizeClasses[format]} rounded-xl border border-dashed border-border/50 bg-secondary/30 flex items-center justify-center ${className}`}

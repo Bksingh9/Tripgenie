@@ -44,8 +44,24 @@ const TripPlanner = () => {
   };
 
   const handleSearch = async () => {
-    if (!from || !to) {
+    if (!from.trim() || !to.trim()) {
       toast.error("Please enter both origin and destination");
+      return;
+    }
+    if (from.trim().toLowerCase() === to.trim().toLowerCase()) {
+      toast.error("Origin and destination cannot be the same");
+      return;
+    }
+    if (Number(travelers) < 1) {
+      toast.error("At least 1 traveler required");
+      return;
+    }
+    if (departDate && new Date(departDate) < new Date(new Date().toDateString())) {
+      toast.error("Departure date cannot be in the past");
+      return;
+    }
+    if (returnDate && departDate && new Date(returnDate) < new Date(departDate)) {
+      toast.error("Return date must be after departure date");
       return;
     }
 
@@ -126,7 +142,7 @@ const TripPlanner = () => {
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Users className="h-4 w-4" /> Travelers
                   </label>
-                  <Input type="number" min="1" max="10" value={travelers} onChange={(e) => setTravelers(e.target.value)} />
+                  <Input type="number" min="1" max="10" value={travelers} onChange={(e) => setTravelers(Math.max(1, Number(e.target.value)).toString())} />
                 </div>
               </div>
 

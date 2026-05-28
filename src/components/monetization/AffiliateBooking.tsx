@@ -30,7 +30,7 @@ const partners: AffiliatePartner[] = [
     tagline: "Compare cheap flights",
     color: "bg-cyan-600",
     getUrl: (dest) =>
-      `https://www.skyscanner.co.in/transport/flights/india/${encodeURIComponent(dest || "anywhere")}/?associateId=${skyscannerAssocId}&utm_source=tripgenie`,
+      `https://www.skyscanner.co.in/flights?query=${encodeURIComponent(dest || "India")}&utm_source=tripgenie`,
   },
   {
     name: "MakeMyTrip",

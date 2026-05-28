@@ -33,6 +33,10 @@ const Index = () => {
   }, []);
 
   const handleSearch = async (message: string) => {
+    if (!message.trim()) {
+      toast.error("Please describe your trip — e.g. 'Weekend trip to Goa'");
+      return;
+    }
     setSearchQuery(message);
     setIsLoading(true);
     setShowResults(false);

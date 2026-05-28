@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plane, Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 const Auth = () => {
@@ -147,7 +148,17 @@ const Auth = () => {
 
                 {isLogin && (
                   <div className="text-right">
-                    <button type="button" className="text-sm text-primary hover:underline">
+                    <button
+                      type="button"
+                      className="text-sm text-primary hover:underline"
+                      onClick={async () => {
+                        if (!email) { setError("Enter your email first, then click Forgot password"); return; }
+                        setError("");
+                        const { error: err } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth` });
+                        if (err) setError(err.message);
+                        else toast.success("Password reset email sent! Check your inbox.");
+                      }}
+                    >
                       Forgot password?
                     </button>
                   </div>
