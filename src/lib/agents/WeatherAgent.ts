@@ -1,11 +1,20 @@
 import type { TripQuery, AgentResult, WeatherDay } from "./types";
 
+const INDIAN_CITIES = new Set(["goa", "manali", "jaipur", "kerala", "delhi", "mumbai", "bangalore", "chennai", "kolkata", "hyderabad", "varanasi", "udaipur", "shimla", "rishikesh", "ladakh", "andaman", "darjeeling", "ooty", "pune", "agra", "lucknow", "amritsar", "jodhpur", "mysore", "kochi", "coorg", "pondicherry"]);
+
+function resolveSearchName(destination: string): string {
+  const lower = destination.toLowerCase().trim();
+  if (INDIAN_CITIES.has(lower)) return `${destination}, India`;
+  return destination;
+}
+
 export async function runWeatherAgent(query: TripQuery): Promise<AgentResult<WeatherDay[]>> {
   const start = performance.now();
 
   try {
+    const searchName = resolveSearchName(query.destination);
     const geocodeRes = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.destination)}&count=1`
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchName)}&count=1`
     );
     const geo = await geocodeRes.json();
     const loc = geo.results?.[0];

@@ -14,7 +14,11 @@ export async function runHolidayAgent(query: TripQuery): Promise<AgentResult<Hol
 
     const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/${countryCode}`);
     if (!res.ok) throw new Error(`Holiday API returned ${res.status}`);
-    const data = await res.json();
+
+    const text = await res.text();
+    if (!text || text.length < 2) throw new Error("Empty response from Holiday API");
+
+    const data = JSON.parse(text);
 
     const holidays: HolidayInfo[] = data.slice(0, 10).map((h: { date: string; localName: string; countryCode: string }) => ({
       date: h.date,

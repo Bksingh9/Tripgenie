@@ -4,13 +4,17 @@ export async function runDestinationAgent(query: TripQuery): Promise<AgentResult
   const start = performance.now();
 
   try {
-    const res = await fetch(`https://restcountries.com/v3.1/capital/${encodeURIComponent(query.destination)}`);
+    // Indian cities/states should resolve to India
+    const INDIAN_PLACES = new Set(["goa", "manali", "jaipur", "kerala", "delhi", "mumbai", "bangalore", "chennai", "kolkata", "hyderabad", "varanasi", "udaipur", "shimla", "rishikesh", "ladakh", "andaman", "darjeeling", "ooty", "pune", "agra", "lucknow", "amritsar", "kochi", "mysore"]);
+    const searchTerm = INDIAN_PLACES.has(query.destination.toLowerCase()) ? "India" : query.destination;
+
+    const res = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(searchTerm)}?fields=name,capital,population,languages,currencies,flag,subregion,region,timezones`);
     let data;
 
     if (res.ok) {
       data = await res.json();
     } else {
-      const res2 = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(query.destination)}`);
+      const res2 = await fetch(`https://restcountries.com/v3.1/capital/${encodeURIComponent(searchTerm)}`);
       if (!res2.ok) throw new Error("Destination not found");
       data = await res2.json();
     }

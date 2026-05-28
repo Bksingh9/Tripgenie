@@ -10,9 +10,10 @@ export interface SunTimes {
 export async function runSunAgent(query: TripQuery): Promise<AgentResult<SunTimes>> {
   const start = performance.now();
   try {
-    // First geocode the destination
+    const INDIAN_CITIES = new Set(["goa", "manali", "jaipur", "kerala", "delhi", "mumbai", "bangalore", "chennai", "kolkata", "hyderabad", "varanasi", "udaipur", "shimla", "rishikesh", "ladakh"]);
+    const searchName = INDIAN_CITIES.has(query.destination.toLowerCase()) ? `${query.destination}, India` : query.destination;
     const geoRes = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.destination)}&count=1`
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchName)}&count=1`
     );
     const geo = await geoRes.json();
     const loc = geo.results?.[0];
