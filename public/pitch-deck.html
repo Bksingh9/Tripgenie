@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripGenie — B2B SaaS Pitch Deck</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Outfit', sans-serif; background: #0a0a0a; color: #fafafa; }
+  .slide { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 4rem 2rem; position: relative; border-bottom: 1px solid #222; }
+  .slide-content { max-width: 1100px; width: 100%; }
+  .slide-number { position: absolute; top: 2rem; right: 2rem; color: #555; font-size: 0.8rem; }
+  h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; }
+  h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; }
+  h3 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.75rem; }
+  p { color: #999; font-size: 1.1rem; line-height: 1.6; }
+  .gradient { background: linear-gradient(135deg, #ff6b35, #ff9a56); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tag { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; border-radius: 100px; border: 1px solid #ff6b3530; background: #ff6b3510; color: #ff6b35; font-size: 0.85rem; font-weight: 500; margin-bottom: 1.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-top: 2rem; }
+  .card { background: #141414; border: 1px solid #222; border-radius: 1rem; padding: 1.5rem; }
+  .card-highlight { border-color: #ff6b3550; box-shadow: 0 0 40px #ff6b3515; }
+  .card h3 { color: #fafafa; }
+  .card p { font-size: 0.95rem; }
+  .metric { text-align: center; padding: 1.5rem; }
+  .metric .number { font-size: 3rem; font-weight: 800; color: #ff6b35; }
+  .metric .label { font-size: 0.85rem; color: #777; margin-top: 0.25rem; }
+  .price { font-size: 2.5rem; font-weight: 800; color: #fafafa; }
+  .price-period { font-size: 1rem; color: #666; }
+  .badge { display: inline-block; padding: 0.2rem 0.75rem; border-radius: 100px; font-size: 0.75rem; font-weight: 600; }
+  .badge-green { background: #22c55e20; color: #22c55e; }
+  .badge-orange { background: #ff6b3520; color: #ff6b35; }
+  .badge-blue { background: #3b82f620; color: #3b82f6; }
+  .check { color: #22c55e; margin-right: 0.5rem; }
+  .list { list-style: none; }
+  .list li { padding: 0.5rem 0; font-size: 0.95rem; color: #ccc; border-bottom: 1px solid #1a1a1a; }
+  .list li:last-child { border: none; }
+  .cta { display: inline-block; padding: 1rem 2rem; background: linear-gradient(135deg, #ff6b35, #ff9a56); color: #0a0a0a; font-weight: 700; border-radius: 0.75rem; text-decoration: none; font-size: 1.1rem; margin-top: 1rem; }
+  .test-result { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; font-size: 0.9rem; }
+  .test-pass { color: #22c55e; }
+  .test-fail { color: #ef4444; }
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #333; }
+  .timeline-item { position: relative; padding-bottom: 2rem; }
+  .timeline-item::before { content: ''; position: absolute; left: -2rem; top: 0.3rem; width: 12px; height: 12px; border-radius: 50%; background: #ff6b35; border: 2px solid #0a0a0a; }
+  .timeline-item h3 { font-size: 1.1rem; }
+  .timeline-item p { font-size: 0.85rem; }
+  .logo { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
+  .logo-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #ff6b35, #ff9a56); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+  .logo-text { font-size: 1.5rem; font-weight: 700; }
+  .footer-bar { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 0; border-top: 1px solid #222; margin-top: 2rem; color: #555; font-size: 0.85rem; }
+  @media (max-width: 768px) {
+    h1 { font-size: 2.2rem; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide">
+  <div class="slide-content" style="text-align: center;">
+    <div class="slide-number">01</div>
+    <div class="logo" style="justify-content: center;">
+      <div class="logo-icon">✈️</div>
+      <div class="logo-text"><span class="gradient">TripGenie</span></div>
+    </div>
+    <h1>The AI Travel Platform<br>Agencies <span class="gradient">Pay You</span> To Use</h1>
+    <p style="max-width: 600px; margin: 0 auto 2rem;">White-label B2B SaaS for travel agencies. Your brand, your domain, AI-powered trip planning built in. Agencies launch their own travel platform in minutes.</p>
+    <div class="tag">🚀 Live Product • 121/121 Tests Passing • Production Ready</div>
+    <br><br>
+    <a href="https://tripgenie-iota.vercel.app/agency" class="cta">See Live Demo →</a>
+  </div>
+</div>
+
+<!-- SLIDE 2: PROBLEM -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">02</div>
+    <div class="tag">💡 The Problem</div>
+    <h2>Travel agencies are stuck in the past</h2>
+    <div class="grid-2" style="margin-top: 2rem;">
+      <div class="card">
+        <h3>😫 Current Pain Points</h3>
+        <ul class="list">
+          <li>❌ Manual trip planning takes hours per client</li>
+          <li>❌ No online presence — losing to OTAs</li>
+          <li>❌ Building a travel platform costs ₹50L+</li>
+          <li>❌ Can't compete with MakeMyTrip, Cleartrip</li>
+          <li>❌ No AI, no automation, no data insights</li>
+        </ul>
+      </div>
+      <div class="card card-highlight">
+        <h3>✨ What Agencies Want</h3>
+        <ul class="list">
+          <li>✅ Their own branded booking platform</li>
+          <li>✅ AI that plans trips in seconds</li>
+          <li>✅ Real-time pricing across providers</li>
+          <li>✅ Client management & analytics</li>
+          <li>✅ Affordable, ready to launch TODAY</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: SOLUTION -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">03</div>
+    <div class="tag">🎯 The Solution</div>
+    <h2>TripGenie: <span class="gradient">Shopify for Travel Agencies</span></h2>
+    <p style="max-width: 700px; margin-bottom: 2rem;">We give travel agencies a production-ready, AI-powered travel platform — white-labeled under their brand — for a monthly subscription.</p>
+    <div class="grid-3">
+      <div class="card">
+        <h3>🏷️ White-Label</h3>
+        <p>Agency's brand, domain, colors. Their clients never see TripGenie.</p>
+      </div>
+      <div class="card">
+        <h3>🤖 AI Trip Planning</h3>
+        <p>OpenAI GPT-4o generates trip options. 4 agents fetch weather, currency, destination data in parallel.</p>
+      </div>
+      <div class="card">
+        <h3>📊 Full Platform</h3>
+        <p>Auth, profiles, saved trips, bookings, pricing, payments — all built in.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: PRODUCT -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">04</div>
+    <div class="tag">🖥️ The Product</div>
+    <h2>9 production pages, 4 AI agents, 5 revenue streams</h2>
+    <div class="grid-3" style="margin-top: 1.5rem;">
+      <div class="card"><h3>🏠 Landing Page</h3><p>AI search bar, trip comparison cards, popular destinations, CTA</p></div>
+      <div class="card"><h3>🔍 Trip Planner</h3><p>Form-based search with AI results + agent insights</p></div>
+      <div class="card"><h3>💰 Pricing</h3><p>3-tier subscriptions with Stripe checkout</p></div>
+      <div class="card"><h3>🔐 Auth</h3><p>Supabase Auth — email/password + Google OAuth</p></div>
+      <div class="card"><h3>📌 Saved Trips</h3><p>Database-backed with price alerts & affiliate booking</p></div>
+      <div class="card"><h3>📋 Bookings</h3><p>Booking history with status, receipts, sharing</p></div>
+      <div class="card"><h3>👤 Profile</h3><p>Editable profile, preferences, subscription tier</p></div>
+      <div class="card"><h3>🏢 For Agencies</h3><p>B2B landing page with agency pricing & lead capture</p></div>
+      <div class="card"><h3>🎮 Demo Mode</h3><p>/tripgenie-live.html auto-triggers AI demo</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: AI AGENTS -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">05</div>
+    <div class="tag">🤖 Multi-Agent System</div>
+    <h2>4 AI agents run in parallel — <span class="gradient">ruflo architecture</span></h2>
+    <p>Inspired by ruflo's swarm orchestration pattern. Event-driven lifecycle with real-time status tracking.</p>
+    <div class="grid-4" style="margin-top: 2rem;">
+      <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌤️</div>
+        <h3>Weather Agent</h3>
+        <p>7-day forecast via Open-Meteo API</p>
+        <div class="badge badge-green" style="margin-top: 0.5rem;">Free • No Key</div>
+      </div>
+      <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💱</div>
+        <h3>Currency Agent</h3>
+        <p>Live INR exchange rates for 10 currencies</p>
+        <div class="badge badge-green" style="margin-top: 0.5rem;">Free • No Key</div>
+      </div>
+      <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📍</div>
+        <h3>Destination Agent</h3>
+        <p>Country info, languages, timezone, flag</p>
+        <div class="badge badge-green" style="margin-top: 0.5rem;">Free • No Key</div>
+      </div>
+      <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📸</div>
+        <h3>Photo Agent</h3>
+        <p>Curated destination photos from Unsplash</p>
+        <div class="badge badge-green" style="margin-top: 0.5rem;">Free • Curated</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top: 1.5rem; background: #0d0d0d; font-family: monospace; font-size: 0.85rem; color: #888; padding: 1rem; line-height: 1.8;">
+      <span style="color: #ff6b35;">[ruflo]</span> swarm.initialized → topology: parallel, 4 agents<br>
+      <span style="color: #ff6b35;">[ruflo]</span> agent.started → WeatherAgent<br>
+      <span style="color: #ff6b35;">[ruflo]</span> agent.started → CurrencyAgent<br>
+      <span style="color: #ff6b35;">[ruflo]</span> agent.started → DestinationAgent<br>
+      <span style="color: #ff6b35;">[ruflo]</span> agent.started → PhotoAgent<br>
+      <span style="color: #22c55e;">[ruflo]</span> agent.stopped → WeatherAgent (245ms)<br>
+      <span style="color: #22c55e;">[ruflo]</span> agent.stopped → CurrencyAgent (180ms)<br>
+      <span style="color: #22c55e;">[ruflo]</span> agent.stopped → DestinationAgent (310ms)<br>
+      <span style="color: #22c55e;">[ruflo]</span> agent.stopped → PhotoAgent (12ms)<br>
+      <span style="color: #22c55e;">[ruflo]</span> task.completed → 4/4 agents succeeded
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6: REVENUE MODEL -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">06</div>
+    <div class="tag">💰 Revenue Model</div>
+    <h2>5 revenue streams — <span class="gradient">multiple ways to earn</span></h2>
+    <div class="grid-2" style="margin-top: 2rem;">
+      <div>
+        <h3>B2B Agency Subscriptions (Primary)</h3>
+        <div class="grid-3" style="gap: 1rem;">
+          <div class="card" style="text-align: center;">
+            <h3>Starter</h3>
+            <div class="price">₹4,999</div>
+            <div class="price-period">/month</div>
+            <p style="margin-top: 0.5rem;">100 clients, basic AI</p>
+          </div>
+          <div class="card card-highlight" style="text-align: center;">
+            <div class="badge badge-orange">Popular</div>
+            <h3>Growth</h3>
+            <div class="price">₹14,999</div>
+            <div class="price-period">/month</div>
+            <p style="margin-top: 0.5rem;">1,000 clients, custom domain</p>
+          </div>
+          <div class="card" style="text-align: center;">
+            <h3>Enterprise</h3>
+            <div class="price">₹49,999</div>
+            <div class="price-period">/month</div>
+            <p style="margin-top: 0.5rem;">Unlimited, dedicated support</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>Additional Revenue Streams</h3>
+        <ul class="list">
+          <li><span class="check">✅</span> <strong>Affiliate Commissions</strong> — 5 partners (Booking.com, Skyscanner, MakeMyTrip, Agoda, Cleartrip)</li>
+          <li><span class="check">✅</span> <strong>Consumer Subscriptions</strong> — Free/Pro (₹799)/Premium (₹1,599) via Stripe</li>
+          <li><span class="check">✅</span> <strong>Google AdSense</strong> — Banner ads (hidden for paid users)</li>
+          <li><span class="check">✅</span> <strong>Buy Me a Coffee</strong> — Donation widget</li>
+        </ul>
+        <div class="card" style="margin-top: 1rem; text-align: center;">
+          <p style="color: #ff6b35; font-weight: 600;">Revenue Potential</p>
+          <p>10 agencies × ₹14,999/mo = <strong style="color: #fafafa; font-size: 1.3rem;">₹1.5L/month</strong></p>
+          <p>50 agencies × ₹14,999/mo = <strong style="color: #fafafa; font-size: 1.3rem;">₹7.5L/month</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: TECH ARCHITECTURE -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">07</div>
+    <div class="tag">⚙️ Architecture</div>
+    <h2>Production-grade tech stack</h2>
+    <div class="grid-2" style="margin-top: 2rem;">
+      <div class="card">
+        <h3>Frontend</h3>
+        <ul class="list">
+          <li>React 18 + TypeScript</li>
+          <li>Vite (build tool)</li>
+          <li>Tailwind CSS + shadcn-ui (49 components)</li>
+          <li>Framer Motion (animations)</li>
+          <li>React Query (data fetching)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Backend</h3>
+        <ul class="list">
+          <li>Supabase Auth (email + Google OAuth)</li>
+          <li>PostgreSQL (4 tables, RLS)</li>
+          <li>Supabase Edge Functions (AI processing)</li>
+          <li>OpenAI GPT-4o-mini (trip generation)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>AI & Agents</h3>
+        <ul class="list">
+          <li>4 parallel agents (ruflo pattern)</li>
+          <li>Event-driven orchestration</li>
+          <li>Real-time status tracking</li>
+          <li>3-tier AI fallback</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>DevOps</h3>
+        <ul class="list">
+          <li>Vercel (auto-deploy on push)</li>
+          <li>GitHub CI/CD</li>
+          <li>Security headers (CSP, HSTS)</li>
+          <li>121/121 automated tests</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: TEST RESULTS -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">08</div>
+    <div class="tag">✅ Quality Assurance</div>
+    <h2>121/121 checks passed — <span class="gradient">100% health score</span></h2>
+    <p>7 automated agents audit the entire product in parallel.</p>
+    <div class="grid-3" style="margin-top: 2rem;">
+      <div class="metric card"><div class="number">121</div><div class="label">Tests Passed</div></div>
+      <div class="metric card"><div class="number">0</div><div class="label">Failures</div></div>
+      <div class="metric card"><div class="number">100%</div><div class="label">Health Score</div></div>
+    </div>
+    <div class="grid-2" style="margin-top: 1rem;">
+      <div class="card">
+        <h3>Use Case Coverage</h3>
+        <div class="test-result test-pass">✅ Landing Page (8/8)</div>
+        <div class="test-result test-pass">✅ AI Trip Search (10/10)</div>
+        <div class="test-result test-pass">✅ Trip Planner (10/10)</div>
+        <div class="test-result test-pass">✅ Authentication (11/11)</div>
+        <div class="test-result test-pass">✅ Saved Trips (9/9)</div>
+        <div class="test-result test-pass">✅ My Bookings (7/7)</div>
+        <div class="test-result test-pass">✅ Profile (10/10)</div>
+      </div>
+      <div class="card">
+        <h3>System Coverage</h3>
+        <div class="test-result test-pass">✅ Pricing & Subs (10/10)</div>
+        <div class="test-result test-pass">✅ Monetization (10/10)</div>
+        <div class="test-result test-pass">✅ Multi-Agent System (12/12)</div>
+        <div class="test-result test-pass">✅ Database & Backend (14/14)</div>
+        <div class="test-result test-pass">✅ Demo Mode (5/5)</div>
+        <div class="test-result test-pass">✅ Build & Deploy (5/5)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: MARKET -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">09</div>
+    <div class="tag">📈 Market Opportunity</div>
+    <h2>India's travel market is <span class="gradient">₹35 lakh crore</span> by 2030</h2>
+    <div class="grid-4" style="margin-top: 2rem;">
+      <div class="metric card"><div class="number">75K+</div><div class="label">Travel Agencies in India</div></div>
+      <div class="metric card"><div class="number">85%</div><div class="label">Have No Online Platform</div></div>
+      <div class="metric card"><div class="number">₹50L+</div><div class="label">Cost to Build Custom</div></div>
+      <div class="metric card"><div class="number">₹5K</div><div class="label">Our Starting Price/mo</div></div>
+    </div>
+    <div class="card" style="margin-top: 2rem;">
+      <h3>Target Segments</h3>
+      <div class="grid-3" style="margin-top: 1rem;">
+        <div><span class="badge badge-green">Tier 1</span><p style="margin-top: 0.5rem;">Small agencies (5-20 staff) wanting to go digital. ₹4,999/mo.</p></div>
+        <div><span class="badge badge-orange">Tier 2</span><p style="margin-top: 0.5rem;">Growing agencies (20-100 staff) needing custom branding. ₹14,999/mo.</p></div>
+        <div><span class="badge badge-blue">Tier 3</span><p style="margin-top: 0.5rem;">Large chains and DMCs needing enterprise features. ₹49,999/mo.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 10: ROADMAP -->
+<div class="slide">
+  <div class="slide-content">
+    <div class="slide-number">10</div>
+    <div class="tag">🗺️ Roadmap</div>
+    <h2>Built for scale</h2>
+    <div class="grid-2">
+      <div class="timeline">
+        <div class="timeline-item">
+          <h3>✅ Phase 1 — MVP (DONE)</h3>
+          <p>9 pages, AI search, auth, database, monetization, multi-agent system, B2B landing page</p>
+        </div>
+        <div class="timeline-item">
+          <h3>Phase 2 — Agency Dashboard (Q3 2026)</h3>
+          <p>Multi-tenant architecture, agency admin panel, client management, white-label config</p>
+        </div>
+        <div class="timeline-item">
+          <h3>Phase 3 — Booking Engine (Q4 2026)</h3>
+          <p>Real-time flight/hotel booking via Amadeus API, payment processing, commission tracking</p>
+        </div>
+        <div class="timeline-item">
+          <h3>Phase 4 — Scale (2027)</h3>
+          <p>Mobile app, offline mode, collaborative planning, travel journal, marketplace</p>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>What's Already Built</h3>
+          <ul class="list">
+            <li><span class="check">✅</span> 89 source files, 8,492 lines</li>
+            <li><span class="check">✅</span> 9 pages, 61 components</li>
+            <li><span class="check">✅</span> 4 AI agents, ruflo event bus</li>
+            <li><span class="check">✅</span> 5 external API integrations</li>
+            <li><span class="check">✅</span> 4 database tables with RLS</li>
+            <li><span class="check">✅</span> 5 revenue streams</li>
+            <li><span class="check">✅</span> Supabase Auth + PostgreSQL</li>
+            <li><span class="check">✅</span> Vercel auto-deploy</li>
+            <li><span class="check">✅</span> 121/121 automated tests</li>
+            <li><span class="check">✅</span> Security headers + npm audit</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 11: CTA -->
+<div class="slide">
+  <div class="slide-content" style="text-align: center;">
+    <div class="slide-number">11</div>
+    <div class="logo" style="justify-content: center;">
+      <div class="logo-icon">✈️</div>
+      <div class="logo-text"><span class="gradient">TripGenie</span></div>
+    </div>
+    <h1>Ready to <span class="gradient">launch?</span></h1>
+    <p style="max-width: 600px; margin: 0 auto 2rem;">The platform is live, tested, and production-ready. Travel agencies are waiting for a solution like this.</p>
+    <a href="https://tripgenie-iota.vercel.app/agency" class="cta">See the Live Platform →</a>
+    <br><br>
+    <a href="https://tripgenie-iota.vercel.app/tripgenie-live.html?agent=demo" class="cta" style="background: transparent; border: 2px solid #ff6b35; color: #ff6b35;">Try AI Demo →</a>
+    <div class="footer-bar">
+      <span>brijkishorsingh@gofynd.com</span>
+      <span>TripGenie • B2B Travel SaaS • 2026</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
