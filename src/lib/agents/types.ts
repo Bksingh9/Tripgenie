@@ -57,5 +57,9 @@ export interface TripPlan {
   currency: AgentResult<CurrencyRate[]>;
   destination: AgentResult<DestinationInfo>;
   photos: AgentResult<DestinationPhoto[]>;
+  holidays: AgentResult<import("./HolidayAgent").HolidayInfo[]>;
+  sun: AgentResult<import("./SunAgent").SunTimes>;
+  geo: AgentResult<import("./GeoAgent").GeoLocation>;
+  translation: AgentResult<import("./TranslationAgent").TranslationPhrase[]>;
   timestamp: number;
 }
