@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { MapPin, ArrowRight, ExternalLink } from "lucide-react";
+import { MapPin, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAffiliateLink } from "@/components/monetization/AffiliateBooking";
 import { getAffiliateLink } from "@/components/monetization/AffiliateBooking";
 
 const destinations = [
@@ -35,29 +34,19 @@ export function PopularDestinations() {
   return (
     <section className="py-20">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex items-center justify-between mb-8"
-        >
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold mb-2">Popular destinations</h2>
             <p className="text-muted-foreground">Trending getaways loved by travelers</p>
           </div>
-          <button className="hidden md:flex items-center gap-2 text-primary hover:gap-3 transition-all duration-300">
-            View all
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </motion.div>
+        </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {destinations.map((destination, index) => (
             <motion.div
               key={destination.city}
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
               <a
@@ -70,7 +59,7 @@ export function PopularDestinations() {
                     <div className="relative overflow-hidden rounded-2xl">
                       <img
                         src={destination.image}
-                        alt={destination.city}
+                        alt={`${destination.city} - ${destination.tag}`}
                         className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />

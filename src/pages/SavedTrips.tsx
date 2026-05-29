@@ -227,6 +227,9 @@ const SavedTrips = () => {
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
+                                {trip.priceChange > 0 && (
+                                  <span className="text-xs text-destructive font-medium">Price went up ₹{trip.priceChange.toLocaleString("en-IN")}!</span>
+                                )}
                                 <Button variant="ghost" size="icon" onClick={() => toggleAlert(trip.id)} className={trip.alertActive ? "text-primary" : "text-muted-foreground"}>
                                   <Bell className="h-4 w-4" />
                                 </Button>

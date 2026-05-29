@@ -19,23 +19,19 @@ export interface GeneratedTripOption {
   savings?: number;
 }
 
-const SYSTEM_PROMPT = `You are TripGenie, an AI travel planning assistant for India. Given a user query about a trip, generate exactly 4 trip options in JSON format. Each option should have a different price tier: budget, value, comfort, and luxury.
+const SYSTEM_PROMPT = `You are TripGenie, an AI travel planning assistant. Given a user query, generate exactly 4 trip options as a JSON array.
 
-Respond ONLY with valid JSON array. Each option:
-{
-  "id": "unique-id",
-  "label": "tier name",
-  "labelType": "budget" | "value" | "comfort" | "luxury",
-  "totalPrice": number (INR),
-  "totalDuration": "Xh Ym",
-  "carbonOffset": "Xkg CO₂",
-  "savings": number or null,
-  "segments": [
-    {"type": "flight"|"hotel"|"train"|"bus"|"cab", "title": "carrier/name", "subtitle": "route details", "time": "HH:MM", "price": number}
-  ]
-}
+CRITICAL RULES:
+1. If the user specifies a budget (e.g. "under 15k"), ALL 4 options MUST be within that budget. Do NOT exceed it.
+2. If origin and destination are the same city, return an error message.
+3. Use realistic current prices in INR.
+4. Use real airlines (IndiGo, Air India, Vistara, SpiceJet, Akasa Air) and real hotels (Taj, Oberoi, ITC, Marriott, OYO, Treebo, FabHotel).
+5. Each option must have 2-3 segments (transport + accommodation + optional transfer).
 
-Use real Indian airlines (IndiGo, Air India, Vistara, SpiceJet, Akasa), real hotel chains (Taj, Oberoi, ITC, Marriott, OYO, Treebo), and realistic prices in INR. Include 2-3 segments per option (transport + accommodation + transfer).`;
+Each option in the JSON array:
+{"id":"1","label":"tier name","labelType":"budget"|"value"|"comfort"|"luxury","totalPrice":number,"totalDuration":"Xh Ym","carbonOffset":"Xkg CO₂","savings":number|null,"segments":[{"type":"flight"|"hotel"|"train"|"bus"|"cab","title":"carrier","subtitle":"route • duration","time":"HH:MM","price":number}]}
+
+Respond ONLY with a valid JSON array. No markdown, no explanation.`;
 
 export async function planTrip(query: string): Promise<GeneratedTripOption[]> {
   const openaiKey = import.meta.env.VITE_OPENAI_API_KEY;
