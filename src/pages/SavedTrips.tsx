@@ -113,12 +113,13 @@ const SavedTrips = () => {
   };
 
   const removeTrip = async (id: string) => {
+    if (!window.confirm("Remove this trip? This cannot be undone.")) return;
     try {
       if (user && isConfigured && !id.startsWith("demo")) {
         await deleteTrip(id);
-        toast.success("Trip removed");
       }
       setTrips(trips.filter((trip) => trip.id !== id));
+      toast.success("Trip removed");
     } catch {
       toast.error("Failed to remove trip");
     }

@@ -19,6 +19,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { getBookings } from "@/lib/api";
+import { toast } from "sonner";
 
 interface BookingDisplay {
   id: string;
@@ -199,15 +200,33 @@ const MyBookings = () => {
                             <p className="text-2xl font-bold">₹{booking.totalAmount.toLocaleString("en-IN")}</p>
                           </div>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="gap-1">
+                            <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                              const text = `Booking: ${booking.id}\n${booking.from} → ${booking.destination}\n${booking.dates}\nTotal: ₹${booking.totalAmount.toLocaleString("en-IN")}\nStatus: ${status.text}\n\nSegments:\n${booking.segments.map(s => `- ${s.title} (${s.time})`).join("\n")}`;
+                              const blob = new Blob([text], { type: "text/plain" });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url; a.download = `${booking.id}-receipt.txt`; a.click();
+                              URL.revokeObjectURL(url);
+                              toast.success("Receipt downloaded");
+                            }}>
                               <Download className="h-4 w-4" />
                               Receipt
                             </Button>
-                            <Button variant="outline" size="sm" className="gap-1">
+                            <Button variant="outline" size="sm" className="gap-1" onClick={async () => {
+                              const text = `My trip: ${booking.from} → ${booking.destination} (${booking.dates}) — ₹${booking.totalAmount.toLocaleString("en-IN")}`;
+                              if (navigator.share) {
+                                await navigator.share({ title: `Trip to ${booking.destination}`, text });
+                              } else {
+                                await navigator.clipboard.writeText(text);
+                                toast.success("Copied to clipboard!");
+                              }
+                            }}>
                               <Share2 className="h-4 w-4" />
                               Share
                             </Button>
-                            <Button variant="default" size="sm">View Details</Button>
+                            <Button variant="default" size="sm" onClick={() => {
+                              toast.info(`${booking.from} → ${booking.destination}\n${booking.dates}\nStatus: ${status.text}\n${booking.segments.map(s => s.title).join(", ")}\nTotal: ₹${booking.totalAmount.toLocaleString("en-IN")}`);
+                            }}>View Details</Button>
                           </div>
                         </div>
                       </CardContent>

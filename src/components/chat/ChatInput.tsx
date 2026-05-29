@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Send, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,22 +19,22 @@ const exampleQueries = [
 
 export function ChatInput({ onSubmit, isLoading, placeholder }: ChatInputProps) {
   const [message, setMessage] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && !isLoading) {
       onSubmit(message.trim());
-      setMessage("");
     }
   };
 
   const handleExampleClick = (query: string) => {
     setMessage(query);
+    onSubmit(query);
   };
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      {/* Example Queries */}
       <div className="flex flex-wrap gap-2 mb-4 justify-center">
         {exampleQueries.map((query, index) => (
           <motion.button
@@ -43,6 +43,7 @@ export function ChatInput({ onSubmit, isLoading, placeholder }: ChatInputProps) 
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             onClick={() => handleExampleClick(query)}
+            type="button"
             className="px-4 py-2 text-xs sm:text-sm rounded-full border border-border bg-card hover:bg-secondary hover:border-primary/30 text-muted-foreground hover:text-foreground transition-all duration-300"
           >
             {query}
@@ -50,7 +51,6 @@ export function ChatInput({ onSubmit, isLoading, placeholder }: ChatInputProps) 
         ))}
       </div>
 
-      {/* Chat Input */}
       <motion.form
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -63,6 +63,7 @@ export function ChatInput({ onSubmit, isLoading, placeholder }: ChatInputProps) 
             <Sparkles className="h-5 w-5 text-primary animate-pulse" />
           </div>
           <Input
+            ref={inputRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder={placeholder || "Where do you want to go? Try: 'Weekend trip to Goa under ₹15k'"}

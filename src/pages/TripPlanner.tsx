@@ -130,13 +130,13 @@ const TripPlanner = () => {
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Calendar className="h-4 w-4" /> Departure
                   </label>
-                  <Input type="date" value={departDate} onChange={(e) => setDepartDate(e.target.value)} />
+                  <Input type="date" value={departDate} min={new Date().toISOString().split("T")[0]} onChange={(e) => setDepartDate(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Calendar className="h-4 w-4" /> Return
                   </label>
-                  <Input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} />
+                  <Input type="date" value={returnDate} min={departDate || new Date().toISOString().split("T")[0]} onChange={(e) => setReturnDate(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-2">
@@ -157,6 +157,8 @@ const TripPlanner = () => {
                   ].map((item) => (
                     <button
                       key={item.label}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => toggleTransport(item.label)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-300 ${
                         selectedTransports.includes(item.label)
@@ -216,9 +218,9 @@ const TripPlanner = () => {
           {!showResults && (
             <div className="grid md:grid-cols-3 gap-4">
               {[
-                { title: "Flexible Dates?", desc: "Check the 'Flexible' option to see cheaper alternatives" },
-                { title: "Multi-City?", desc: "Add stops to your journey for a complete itinerary" },
-                { title: "Budget Limit?", desc: "Set a max budget and we'll find options within range" },
+                { title: "AI-Powered", desc: "Our AI analyzes flights, hotels, and transport to find the best combinations" },
+                { title: "8 Data Agents", desc: "Weather, currency, holidays, sun times, location — all fetched in parallel" },
+                { title: "Real Prices", desc: "Compare deals across Booking.com, Skyscanner, MakeMyTrip and more" },
               ].map((tip, index) => (
                 <motion.div
                   key={tip.title}

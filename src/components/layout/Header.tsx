@@ -70,16 +70,13 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="hidden md:flex">
-            <Bell className="h-5 w-5" />
-          </Button>
           <Link to="/saved-trips">
             <Button variant="ghost" size="icon" className="hidden md:flex">
               <Bookmark className="h-5 w-5" />
             </Button>
           </Link>
 
-          {tier === "free" && (
+          {tier === "free" && location.pathname !== "/pricing" && (
             <Link to="/pricing">
               <Button variant="default" size="sm" className="hidden sm:flex gap-2 bg-primary/90 hover:bg-primary">
                 <Zap className="h-4 w-4" />

@@ -75,11 +75,11 @@ const Auth = () => {
               <span className="text-2xl font-bold text-gradient">TripGenie</span>
             </Link>
             <h1 className="text-2xl font-bold mb-2">
-              {isLogin ? "Welcome back!" : "Create your account"}
+              {isLogin ? "Sign in to your account" : "Create your account"}
             </h1>
             <p className="text-muted-foreground">
               {isLogin
-                ? "Sign in to access your saved trips and bookings"
+                ? "Access your saved trips, bookings, and preferences"
                 : "Join thousands of smart travelers"}
             </p>
           </div>
