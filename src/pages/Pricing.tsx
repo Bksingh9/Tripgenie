@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription, SubscriptionTier } from "@/contexts/SubscriptionContext";
+import { getPaymentLink } from "@/lib/payments";
 import { toast } from "sonner";
 import {
   Check,
@@ -125,19 +126,11 @@ const Pricing = () => {
   const handleSelectPlan = (planId: SubscriptionTier) => {
     if (planId === "free") return;
 
-    // Supports any PG: set env vars to your checkout URLs
-    // VITE_PRO_CHECKOUT_URL / VITE_PREMIUM_CHECKOUT_URL
-    // Works with Razorpay, Stripe, LemonSqueezy, Cashfree, or any hosted checkout
-    const checkoutUrls: Record<string, string> = {
-      pro: import.meta.env.VITE_PRO_CHECKOUT_URL || import.meta.env.VITE_STRIPE_PRO_LINK || "",
-      premium: import.meta.env.VITE_PREMIUM_CHECKOUT_URL || import.meta.env.VITE_STRIPE_PREMIUM_LINK || "",
-    };
-
-    const url = checkoutUrls[planId];
+    const url = getPaymentLink(planId as "pro" | "premium");
     if (url) {
       window.open(url, "_blank", "noopener");
     } else {
-      toast.info("Payment coming soon! Contact us at the Agency page to get started.");
+      toast.info("Payment setup in progress. Contact us at the Agency page to get early access!");
     }
   };
 
