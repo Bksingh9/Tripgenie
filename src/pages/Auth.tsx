@@ -126,6 +126,8 @@ const Auth = () => {
                     type="email"
                     placeholder="you@example.com"
                     value={email}
+                    autoComplete="email"
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />

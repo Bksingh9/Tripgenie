@@ -26,22 +26,18 @@ const TIER_LIMITS: Record<SubscriptionTier, { savedTrips: number; showAds: boole
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user, profile } = useAuth();
 
-  const [tier, setTier] = useState<SubscriptionTier>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "pro" || stored === "premium") return stored;
-    return "free";
-  });
+  // DB profile is source of truth; localStorage is only a cache for unauthenticated users
+  const [tier, setTier] = useState<SubscriptionTier>("free");
 
-  // Sync tier from database profile when available
   useEffect(() => {
     if (profile?.subscription_tier) {
-      const dbTier = profile.subscription_tier as SubscriptionTier;
-      if (dbTier !== tier) {
-        setTier(dbTier);
-        localStorage.setItem(STORAGE_KEY, dbTier);
-      }
+      setTier(profile.subscription_tier as SubscriptionTier);
+    } else if (!user) {
+      // Only trust localStorage when not logged in (unauthenticated demo)
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === "pro" || stored === "premium") setTier(stored);
     }
-  }, [profile]);
+  }, [profile, user]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, tier);
