@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription, SubscriptionTier } from "@/contexts/SubscriptionContext";
-import { getPaymentLink } from "@/lib/payments";
+import { initiatePayment, type PlanId } from "@/lib/payments";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Check,
@@ -122,15 +123,23 @@ function FeatureValue({ value }: { value: boolean | string }) {
 
 const Pricing = () => {
   const { tier: currentTier } = useSubscription();
+  const { user, profile } = useAuth();
 
-  const handleSelectPlan = (planId: SubscriptionTier) => {
+  const handleSelectPlan = async (planId: SubscriptionTier) => {
     if (planId === "free") return;
 
-    const url = getPaymentLink(planId as "pro" | "premium");
-    if (url) {
-      window.open(url, "_blank", "noopener");
-    } else {
-      toast.info("Payment setup in progress. Contact us at the Agency page to get early access!");
+    const result = await initiatePayment(planId as PlanId, {
+      email: user?.email || profile?.email,
+      name: profile?.full_name || undefined,
+      phone: (profile?.phone as string) || undefined,
+    });
+
+    if (!result.success) {
+      if (result.error === "not_configured") {
+        toast.info("Payment setup in progress. Contact us at the Agency page to get early access!");
+      } else {
+        toast.error(result.error || "Payment failed. Please try again.");
+      }
     }
   };
 
